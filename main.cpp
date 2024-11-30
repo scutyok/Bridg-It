@@ -50,7 +50,6 @@ void genMap(int n)
         map[i].resize(n);
     }
 
-    cout << n << '\n';
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
@@ -264,6 +263,7 @@ int main()
                 int generare = 0;
                 Point firstClick = { -1, -1 };
                 int page = 0;
+                linii.clear();
 
                 while (1)
                 {
@@ -271,16 +271,20 @@ int main()
 
                     drawMap(mapsize, epsilon);
 
-
-                    for (const auto& linePair : linii)
+                    int playercolor = -1;
+                    for (int i = 0; i < linii.size(); i++)
                     {
-                        if (player == 1)
+                        const auto& linePair = linii[i];
+                        if (playercolor == 1)
                         {
                             setcolor(COLOR(65, 65, 202));
+                            playercolor = -playercolor;
+                            
                         }
-                        else
+						else if (playercolor == -1)
                         {
                             setcolor(COLOR(202, 65, 65));
+							playercolor = -playercolor;
                         }
                         line(linePair.first.x, linePair.first.y, linePair.second.x, linePair.second.y);
                     }
@@ -326,13 +330,14 @@ int main()
 
                                             bool canDraw = true;
 
-                                            if (canDraw && !exista(firstClick, secondClick)) {
+                                            if (canDraw && !exista(firstClick, secondClick) && map[firstClick.y][firstClick.x] == player && map[secondClick.y][secondClick.x] == player) {
                                                 linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + firstClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + firstClick.y * epsilon},
                                                                   {sW / 2 - mapsize / 2 * epsilon + secondClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + secondClick.y * epsilon} });
                                                 firstClick = { -1, -1 };
                                                 player = -player;
                                             }
-                                            else {
+                                            else 
+                                            {
                                                 firstClick = { -1, -1 };
                                             }
                                         }
