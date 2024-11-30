@@ -29,14 +29,28 @@ struct Point {
 
 vector<pair<Point, Point>> linii;
 
-void genMap(int n)
+void afisMap(int n)
 {
-    map.resize(n + 10);
+    cout << n;
     for (int i = 0; i < n; i++)
     {
-        map[i].resize(n + 10);
+        for (int j = 0; j < n; j++)
+        {
+            cout << setw(5) << map[i][j];
+        }
+        cout << '\n';
+    }
+}
+
+void genMap(int n)
+{
+    map.resize(n);
+    for (int i = 0; i < n; i++)
+    {
+        map[i].resize(n);
     }
 
+    cout << n << '\n';
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
@@ -132,23 +146,36 @@ bool exista(Point p1, Point p2)
 
 void drawMap(int mapsize, int epsilon)
 {
+    POINT pnt;
+    GetCursorPos(&pnt);
+    ScreenToClient(GetForegroundWindow(), &pnt);
+
     for (int i = 0; i < mapsize; i++)
     {
         for (int j = 0; j < mapsize; j++)
         {
+            int circleX = sW / 2 - mapsize / 2 * epsilon + j * epsilon;
+            int circleY = sH / 2 - mapsize / 2 * epsilon + i * epsilon;
+            int radius = 10;
+
+            if (sqrt(pow(pnt.x - circleX, 2) + pow(pnt.y - circleY, 2)) <= radius)
+            {
+                radius = 15;
+            }
+
             if (map[i][j] == 1)
             {
                 setcolor(RED);
-                circle(sW / 2 - mapsize / 2 * epsilon + j * epsilon, sH / 2 - mapsize / 2 * epsilon + i * epsilon, 10);
+                circle(circleX, circleY, radius);
                 setfillstyle(SOLID_FILL, COLOR(202, 65, 65));
-                floodfill(sW / 2 - mapsize / 2 * epsilon + j * epsilon, sH / 2 - mapsize / 2 * epsilon + i * epsilon, RED);
+                floodfill(circleX, circleY, RED);
             }
             else if (map[i][j] == -1)
             {
                 setcolor(BLUE);
-                circle(sW / 2 - mapsize / 2 * epsilon + j * epsilon, sH / 2 - mapsize / 2 * epsilon + i * epsilon, 10);
+                circle(circleX, circleY, radius);
                 setfillstyle(SOLID_FILL, COLOR(65, 65, 202));
-                floodfill(sW / 2 - mapsize / 2 * epsilon + j * epsilon, sH / 2 - mapsize / 2 * epsilon + i * epsilon, BLUE);
+                floodfill(circleX, circleY, BLUE);
             }
         }
     }
@@ -236,26 +263,47 @@ int main()
                 int player = 1;
                 int generare = 0;
                 Point firstClick = { -1, -1 };
+                int page = 0;
 
                 while (1)
                 {
                     int epsilon = sH / 10;
 
-                    if (generare == 0)
+                    drawMap(mapsize, epsilon);
+
+
+                    for (const auto& linePair : linii)
                     {
-                        drawMap(mapsize, epsilon);
-                        generare = 1;
+                        if (player == 1)
+                        {
+                            setcolor(COLOR(65, 65, 202));
+                        }
+                        else
+                        {
+                            setcolor(COLOR(202, 65, 65));
+                        }
+                        line(linePair.first.x, linePair.first.y, linePair.second.x, linePair.second.y);
                     }
+
+                    setactivepage(page);
+                    setvisualpage(1 - page);
+                    cleardevice();
 
                     POINT pnt;
                     GetCursorPos(&pnt);
                     ScreenToClient(GetForegroundWindow(), &pnt);
+
+                    int linepage = 0;
 
                     if (ismouseclick(WM_LBUTTONDOWN))
                     {
                         int clickX = pnt.x;
                         int clickY = pnt.y;
                         clearmouseclick(WM_LBUTTONDOWN);
+
+                        setactivepage(linepage);
+                        setvisualpage(1 - linepage);
+                        cleardevice();
 
                         for (int i = 0; i < mapsize; i++)
                         {
@@ -267,22 +315,32 @@ int main()
                                 {
                                     if (firstClick.x == -1 && firstClick.y == -1)
                                     {
-                                        firstClick = { circleX, circleY };
+                                        firstClick = { j, i };
                                     }
                                     else
                                     {
-                                        Point secondClick = { circleX, circleY };
-                                        if (!exista(firstClick, secondClick) && map[firstClick.y / epsilon][firstClick.x / epsilon] == map[secondClick.y / epsilon][secondClick.x / epsilon])
-                                        {
-                                            linii.push_back({ firstClick, secondClick });
-                                            line(firstClick.x, firstClick.y, secondClick.x, secondClick.y);
-                                            firstClick = { -1, -1 };
-                                            player = -player;
+                                        Point secondClick = { j, i };
+                                        if ((abs(firstClick.x - secondClick.x) == 2 && firstClick.y == secondClick.y) ||
+                                            (abs(firstClick.y - secondClick.y) == 2 && firstClick.x == secondClick.x)) 
+                                        { 
+
+                                            bool canDraw = true;
+
+                                            if (canDraw && !exista(firstClick, secondClick)) {
+                                                linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + firstClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + firstClick.y * epsilon},
+                                                                  {sW / 2 - mapsize / 2 * epsilon + secondClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + secondClick.y * epsilon} });
+                                                firstClick = { -1, -1 };
+                                                player = -player;
+                                            }
+                                            else {
+                                                firstClick = { -1, -1 };
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+
                         if (player == 1)
                         {
                             setcolor(COLOR(65, 65, 202));
@@ -291,7 +349,10 @@ int main()
                         {
                             setcolor(COLOR(202, 65, 65));
                         }
+                        linepage = 1 - linepage;
                     }
+
+                    page = 1 - page;
 
                     Fullscreen();
 
