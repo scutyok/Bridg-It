@@ -28,6 +28,7 @@ struct Point {
 };
 
 vector<pair<Point, Point>> linii;
+vector<pair<Point, Point>> pozlinii;
 
 void afisMap(int n)
 {
@@ -131,9 +132,9 @@ void Fullscreen()
 
 bool exista(Point p1, Point p2)
 {
-    for (int i = 0; i < linii.size(); i++)
+    for (int i = 0; i < pozlinii.size(); i++)
     {
-        pair<Point, Point>& line = linii[i];
+        pair<Point, Point>& line = pozlinii[i];
         if ((line.first.x == p1.x && line.first.y == p1.y && line.second.x == p2.x && line.second.y == p2.y) ||
             (line.first.x == p2.x && line.first.y == p2.y && line.second.x == p1.x && line.second.y == p1.y))
         {
@@ -178,6 +179,33 @@ void drawMap(int mapsize, int epsilon)
             }
         }
     }
+}
+
+int intersectie(Point p1, Point p2, int epsilon, int mapsize)
+{
+    Point tp1;
+    Point tp2;
+	if (p1.x == p2.x)
+	{
+        if (p1.y != p2.y)
+        {
+            tp1 = {p1.x-1, (p1.y + p2.y) / 2 };
+            tp2 = {p2.x+1, (p1.y + p2.y) / 2 };
+        }
+	}
+	else if (p1.y == p2.y)
+	{
+		if (p1.x != p2.x)
+		{
+            tp1 = { (p1.x + p2.x) / 2, p1.y-1 };
+            tp2 = { (p1.x + p2.x) / 2, p2.y+1 };
+		}
+	}
+	if (exista(tp1,tp2))
+    {
+        return 1;
+	}
+    return 0;
 }
 
 int main()
@@ -330,9 +358,11 @@ int main()
 
                                             bool canDraw = true;
 
-                                            if (canDraw && !exista(firstClick, secondClick) && map[firstClick.y][firstClick.x] == player && map[secondClick.y][secondClick.x] == player) {
+                                            if (canDraw && !exista(firstClick, secondClick) && map[firstClick.y][firstClick.x] == player && map[secondClick.y][secondClick.x] == player && !intersectie(firstClick, secondClick, epsilon, mapsize))
+                                            {
                                                 linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + firstClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + firstClick.y * epsilon},
                                                                   {sW / 2 - mapsize / 2 * epsilon + secondClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + secondClick.y * epsilon} });
+												pozlinii.push_back({ firstClick, secondClick });
                                                 firstClick = { -1, -1 };
                                                 player = -player;
                                             }
