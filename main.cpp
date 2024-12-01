@@ -6,6 +6,7 @@
 #include <thread>
 #include <iomanip>
 #include <cmath>
+#include <queue>
 
 using namespace std;
 
@@ -32,6 +33,9 @@ struct Point {
 vector<pair<Point, Point>> linii;
 vector<pair<Point, Point>> pozlinii;
 
+int di[5] = {0, 1, 0, -1};
+int dj[5] = {1, 0, -1, 0};
+
 void afisMap(int n, vector<vector <int>> a)
 {
 	cout << n << '\n';
@@ -45,34 +49,49 @@ void afisMap(int n, vector<vector <int>> a)
     }
 }
 
-void p1map(int n)
+void debugmaps(int n)
 {
-	afisMap(n, p1road);
-	cout << '\n';
-	afisMap(n, p2road);
-    cout << '\n';
+    cout << "mapa playerului 1: " << '\n';
+    afisMap(n, p1road);
+    cout << "mapa playerului 2: " <<'\n';
+    afisMap(n, p2road);
+}
+
+void fill(int istart, int jstart, int n, int v, vector<vector <int>> a, int &win, int player)
+{
+    queue<pair<int, int>> Q;
+    Q.push(make_pair(istart, jstart));
+    a[istart][jstart] = v;
+    while (!Q.empty())
+    {
+        int i = Q.front().first, j = Q.front().second;
+        for (int k = 0; k < 4; k++)
+        {
+            int iv = i + di[k], jv = j + dj[k];
+            if (iv >= 0 && iv < n && jv >= 0 && jv < n && a[iv][jv]==1 && a[iv][jv] != v)
+            {
+                a[iv][jv] = v;
+                Q.push(make_pair(iv, jv));
+				if (iv == n - 1 && player == 1)
+				{
+                    win = 1;
+				}
+				if (jv == n - 1 && player == -1)
+				{
+					win = 2;
+				}
+            }
+        }
+        Q.pop();
+    }
+
+    /*debugmaps(n);
+	cout << "mapa din fill: " << '\n';
+	afisMap(n, a);*/
 }
 
 void genMap(int n)
 {
-    map.resize(n);
-    for (int i = 0; i < n; i++)
-    {
-        map[i].resize(n);
-    }
-
-    p1road.resize(n);
-    for (int i = 0; i < n; i++)
-    {
-        p1road[i].resize(n);
-    }
-
-    p2road.resize(n);
-    for (int i = 0; i < n; i++)
-    {
-        p2road[i].resize(n);
-    }
-
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
@@ -302,6 +321,12 @@ int main()
                     break;
                 }
 
+                map.resize(mapsize);
+                for (int i = 0; i < mapsize; i++)
+                {
+                    map[i].resize(mapsize);
+                }
+
                 genMap(mapsize);
 
                 thread mapThread(genMap, mapsize);
@@ -315,9 +340,25 @@ int main()
                 int generare = 0;
                 Point firstClick = { -1, -1 };
                 int page = 0;
+                settextstyle(font, direction, font_size);
+                int win = 0;
+
                 linii.clear();
                 pozlinii.clear();
-                settextstyle(font, direction, font_size);
+				p1road.clear();
+				p2road.clear();
+
+                p1road.resize(mapsize);
+                for (int i = 0; i < mapsize; i++)
+                {
+                    p1road[i].resize(mapsize);
+                }
+
+                p2road.resize(mapsize);
+                for (int i = 0; i < mapsize; i++)
+                {
+                    p2road[i].resize(mapsize);
+                }
 
                 while (1)
                 {
@@ -403,6 +444,13 @@ int main()
 
                                                         p1road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
                                                     }
+                                                    for (int i = 0; i < mapsize; i++)
+                                                    {
+                                                        if (p1road[0][i] == 1)
+                                                        {
+                                                            fill(0, i, mapsize, 0, p1road, win, player);
+                                                        }
+                                                    }
 												}
                                                 if (player == -1)
                                                 {
@@ -418,8 +466,45 @@ int main()
 
                                                         p2road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
                                                     }
+                                                    for (int i = 0; i < mapsize; i++)
+                                                    {
+                                                        if (p2road[i][0] == 1)
+                                                        {
+                                                            fill(i, 0, mapsize, 0, p2road, win, player);
+                                                        }
+                                                    }
                                                 }
-                                                p1map(mapsize);
+                                                switch (win)
+                                                {
+                                                    case 1:
+                                                        setactivepage(0);
+                                                        setvisualpage(0);
+                                                        cleardevice();
+                                                        outtextxy(sW / 2 - textwidth("Red wins!")/2, sH / 2, "Red wins!");
+                                                        while (1)
+                                                        {
+                                                            if (GetKeyState(VK_ESCAPE) & 0x8000)
+                                                            {
+                                                                setcolor(COLOR(255, 255, 255));
+                                                                break;
+                                                            }
+                                                        }
+                                                        break;
+                                                    case 2:
+                                                        setactivepage(0);
+                                                        setvisualpage(0);
+                                                        cleardevice();
+                                                        outtextxy(sW / 2 - textwidth("Blue wins!")/2, sH / 2, "Blue wins!");
+                                                        while (1)
+                                                        {
+                                                            if (GetKeyState(VK_ESCAPE) & 0x8000)
+                                                            {
+                                                                setcolor(COLOR(255, 255, 255));
+                                                                break;
+                                                            }
+                                                        }
+                                                        break;
+                                                }
                                                 firstClick = { -1, -1 };
                                                 player = -player;
                                             }
@@ -446,11 +531,11 @@ int main()
 
                     if (player == -1)
                     {
-                        outtextxy(sW / 2 - 600, sH / 2, "Turn: Blue");
+                        outtextxy(sW / 8, sH / 2, "Turn: Blue");
                     }
                     if (player == 1)
                     {
-                        outtextxy(sW / 2 - 600, sH / 2, "Turn: Red");
+                        outtextxy(sW / 8, sH / 2, "Turn: Red");
                     }
 
                     page = 1 - page;
