@@ -10,6 +10,8 @@
 using namespace std;
 
 vector<vector<int>> map;
+vector<vector<int>> p1road;
+vector<vector<int>> p2road;
 
 #define font 8
 #define direction 0
@@ -30,17 +32,25 @@ struct Point {
 vector<pair<Point, Point>> linii;
 vector<pair<Point, Point>> pozlinii;
 
-void afisMap(int n)
+void afisMap(int n, vector<vector <int>> a)
 {
-    cout << n;
+	cout << n << '\n';
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
         {
-            cout << setw(5) << map[i][j];
+            cout << setw(5) << a[i][j];
         }
         cout << '\n';
     }
+}
+
+void p1map(int n)
+{
+	afisMap(n, p1road);
+	cout << '\n';
+	afisMap(n, p2road);
+    cout << '\n';
 }
 
 void genMap(int n)
@@ -49,6 +59,18 @@ void genMap(int n)
     for (int i = 0; i < n; i++)
     {
         map[i].resize(n);
+    }
+
+    p1road.resize(n);
+    for (int i = 0; i < n; i++)
+    {
+        p1road[i].resize(n);
+    }
+
+    p2road.resize(n);
+    for (int i = 0; i < n; i++)
+    {
+        p2road[i].resize(n);
     }
 
     for (int i = 0; i < n; i++)
@@ -367,6 +389,37 @@ int main()
                                                 linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + firstClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + firstClick.y * epsilon},
                                                                   {sW / 2 - mapsize / 2 * epsilon + secondClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + secondClick.y * epsilon} });
 												pozlinii.push_back({ firstClick, secondClick });
+                                                if (player == 1)
+                                                {
+													p1road[firstClick.y][firstClick.x] = 1;
+													p1road[secondClick.y][secondClick.x] = 1;
+													if (firstClick.y == secondClick.y && firstClick.x != secondClick.x)
+													{
+
+														p1road[firstClick.y][max(firstClick.x,secondClick.x)-1] = 1;
+                                                    }
+                                                    if (firstClick.y != secondClick.y && firstClick.x == secondClick.x)
+                                                    {
+
+                                                        p1road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
+                                                    }
+												}
+                                                if (player == -1)
+                                                {
+                                                    p2road[firstClick.y][firstClick.x] = 1;
+                                                    p2road[secondClick.y][secondClick.x] = 1;
+                                                    if (firstClick.y == secondClick.y && firstClick.x != secondClick.x)
+                                                    {
+
+                                                        p2road[firstClick.y][max(firstClick.x, secondClick.x) - 1] = 1;
+                                                    }
+                                                    if (firstClick.y != secondClick.y && firstClick.x == secondClick.x)
+                                                    {
+
+                                                        p2road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
+                                                    }
+                                                }
+                                                p1map(mapsize);
                                                 firstClick = { -1, -1 };
                                                 player = -player;
                                             }
