@@ -114,18 +114,20 @@ void Fullscreen()
     {
         switch (fullscreen)
         {
-        case 1:
-            closegraph();
-            initwindow(sW, sH, "Bridg-It");
-            fullscreen = 0;
-            delay(100);
-            break;
-        case 0:
-            closegraph();
-            initwindow(sW, sH, "", -3, -3);
-            fullscreen = 1;
-            delay(100);
-            break;
+            case 1:
+                closegraph();
+                initwindow(sW, sH, "Bridg-It");
+                fullscreen = 0;
+                settextstyle(font, direction, font_size);
+                delay(100);
+                break;
+            case 0:
+                closegraph();
+                initwindow(sW, sH, "", -3, -3);
+                fullscreen = 1;
+                settextstyle(font, direction, font_size);
+                delay(100);
+                break;
         }
     }
 }
@@ -292,6 +294,8 @@ int main()
                 Point firstClick = { -1, -1 };
                 int page = 0;
                 linii.clear();
+                pozlinii.clear();
+                settextstyle(font, direction, font_size);
 
                 while (1)
                 {
@@ -385,6 +389,15 @@ int main()
                             setcolor(COLOR(202, 65, 65));
                         }
                         linepage = 1 - linepage;
+                    }
+
+                    if (player == -1)
+                    {
+                        outtextxy(sW / 2 - 600, sH / 2, "Turn: Blue");
+                    }
+                    if (player == 1)
+                    {
+                        outtextxy(sW / 2 - 600, sH / 2, "Turn: Red");
                     }
 
                     page = 1 - page;
