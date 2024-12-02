@@ -114,6 +114,7 @@ void genMap(int n)
 
 int GUI(char text[], int diffx, int diffy)
 {
+    int ok = 0;
     int text_width = textwidth(text);
     int text_height = textheight(text);
     int tx = (sW / 2) + diffx;
@@ -123,20 +124,19 @@ int GUI(char text[], int diffx, int diffy)
     if (pnt.x >= tx - text_width / 2 && pnt.x <= tx + text_width / 2 && pnt.y >= ty - text_height / 2 && pnt.y <= ty + text_height / 2)
     {
         settextstyle(font, direction, hover_font_size);
+        if (ismouseclick(WM_LBUTTONDOWN))
+        {
+            ok=1;
+            clearmouseclick(WM_LBUTTONDOWN);
+        }
     }
     else
     {
         settextstyle(font, direction, font_size);
     }
     outtextxy(tx - text_width / 2, ty - text_height / 2, text);
-    if (ismouseclick(WM_LBUTTONDOWN))
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    settextstyle(font, direction, font_size);
+    return ok;
 }
 
 int charNr_to_int(char ch[])
@@ -160,6 +160,7 @@ void Fullscreen()
                 initwindow(sW, sH, "Bridg-It");
                 fullscreen = 0;
                 settextstyle(font, direction, font_size);
+                setbkcolor(COLOR(16, 16, 16));
                 delay(100);
                 break;
             case 0:
@@ -167,6 +168,7 @@ void Fullscreen()
                 initwindow(sW, sH, "", -3, -3);
                 fullscreen = 1;
                 settextstyle(font, direction, font_size);
+                setbkcolor(COLOR(16, 16, 16));
                 delay(100);
                 break;
         }
@@ -257,6 +259,8 @@ int main()
 
     int activePage = 0;
 
+    setbkcolor(COLOR(16, 16, 16));
+
     while (1)
     {
         Fullscreen();
@@ -270,6 +274,10 @@ int main()
 
         PVP = GUI("Player V.S. Player", -400, 0);
         PVAI = GUI("Player V.S. AI", 400, 0);
+
+        settextstyle(5, 0, sH/100);
+        outtextxy(sW / 2 - textwidth("Bridg-it")/2, sH / 6, "Bridg-it");
+        settextstyle(font, direction, font_size);
 
         int numb[5];
         char ch[5];
@@ -480,7 +488,9 @@ int main()
                                                         setactivepage(0);
                                                         setvisualpage(0);
                                                         cleardevice();
+                                                        setcolor(COLOR(202, 65, 65));
                                                         outtextxy(sW / 2 - textwidth("Red wins!")/2, sH / 2, "Red wins!");
+                                                        clearmouseclick(WM_LBUTTONDOWN);
                                                         while (1)
                                                         {
                                                             if (GetKeyState(VK_ESCAPE) & 0x8000)
@@ -494,7 +504,9 @@ int main()
                                                         setactivepage(0);
                                                         setvisualpage(0);
                                                         cleardevice();
+                                                        setcolor(COLOR(65, 65, 202));
                                                         outtextxy(sW / 2 - textwidth("Blue wins!")/2, sH / 2, "Blue wins!");
+                                                        clearmouseclick(WM_LBUTTONDOWN);
                                                         while (1)
                                                         {
                                                             if (GetKeyState(VK_ESCAPE) & 0x8000)
@@ -531,11 +543,15 @@ int main()
 
                     if (player == -1)
                     {
-                        outtextxy(sW / 8, sH / 2, "Turn: Blue");
+                        setcolor(COLOR(65, 65, 202));
+                        outtextxy(sW / 8 - textwidth("Turn: Blue")/2, sH / 2, "Turn: Blue");
+                        setcolor(COLOR(202, 65, 65));
                     }
                     if (player == 1)
                     {
-                        outtextxy(sW / 8, sH / 2, "Turn: Red");
+                        setcolor(COLOR(202, 65, 65));
+                        outtextxy(sW / 8 - textwidth("Turn: Red")/2, sH / 2, "Turn: Red");
+                        setcolor(COLOR(65, 65, 202));
                     }
 
                     page = 1 - page;
@@ -555,6 +571,5 @@ int main()
 
         delay(10);
     }
-    // proiect
     return 0;
 }
