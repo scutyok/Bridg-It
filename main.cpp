@@ -33,8 +33,10 @@ struct Point {
 vector<pair<Point, Point>> linii;
 vector<pair<Point, Point>> pozlinii;
 
-int di[5] = {0, 1, 0, -1};
-int dj[5] = {1, 0, -1, 0};
+int di[5] = { 0, 1, 0, -1 };
+int dj[5] = { 1, 0, -1, 0 };
+int dip[5] = { 0, 2, 0, -2 };
+int djp[5] = { 2, 0, -2, 0 };
 
 void afisMap(int n, vector<vector <int>> a)
 {
@@ -85,9 +87,9 @@ void fill(int istart, int jstart, int n, int v, vector<vector <int>> a, int &win
         Q.pop();
     }
 
-    /*debugmaps(n);
+    debugmaps(n);
 	cout << "mapa din fill: " << '\n';
-	afisMap(n, a);*/
+	afisMap(n, a);
 }
 
 void genMap(int n)
@@ -253,6 +255,160 @@ int intersectie(Point p1, Point p2, int epsilon, int mapsize)
     return 0;
 }
 
+int wincon(int player, int mapsize)
+{
+    int win = 0;
+    if(player == 1)
+    {
+        for (int i = 0; i < mapsize; i++)
+        {
+            if (p1road[0][i] == 1) 
+            {
+                fill(0, i, mapsize, 0, p1road, win, player);
+            }
+        }
+    }
+    if (player == -1)
+    {
+        for (int i = 0; i < mapsize; i++)
+        {
+            if (p2road[i][0] == 1)
+            {
+                fill(i, 0, mapsize, 0, p2road, win, player);
+            }
+        }
+    }
+    return win;
+}
+
+int eval(int player, int mapsize) 
+{
+    int win = wincon(player, mapsize);
+    if (win == 1) return 1000;
+    if (win == 2) return -1000;
+    return 0;
+}
+
+vector<pair<Point, Point>> genMoves(int player, int mapsize) 
+{
+    vector<pair<Point, Point>> moves;
+
+    for (int i = 0; i < mapsize; i++) 
+    {
+        for (int j = 0; j < mapsize; j++) 
+        {
+            if (map[i][j] == player) 
+            {
+                for (int k = 0; k < 4; k++) 
+                {
+                    int ni = i + dip[k];
+                    int nj = j + djp[k];
+                    if (ni >= 0 && ni < mapsize && nj >= 0 && nj < mapsize && map[ni][nj] == player) 
+                    {
+                        Point p1 = { j, i };
+                        Point p2 = { nj, ni };
+                        if (!exista(p1, p2) && !intersectie(p1, p2, 0, mapsize)) 
+                        {
+                            moves.push_back({ p1, p2 });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return moves;
+}
+
+int minimax(int depth, int player, int mapsize, int alpha, int beta)
+{
+    int score = eval(player, mapsize);
+
+    if (score == 1000 || score == -1000)
+    {
+        return score;
+    }
+    if (depth == 0)
+    {
+        return score;
+    }
+
+    vector<pair<Point, Point>> moves = genMoves(player, mapsize);
+
+    if (moves.empty())
+    {
+        return score;
+    }
+
+    if (player == 1) 
+    {
+        int maxEval = -9999;
+        for (int i = 0; i < moves.size(); i++)
+        {
+            const auto& move = moves[i];
+            Point p1 = move.first;
+            Point p2 = move.second;
+            p2road[p1.y][p1.x] = 0;
+            p2road[p2.y][p2.x] = 0;
+            int eval = minimax(depth - 1, -player, mapsize, alpha, beta);
+            p2road[p1.y][p1.x] = 1;
+            p2road[p2.y][p2.x] = 1;
+            maxEval = max(maxEval, eval);
+            alpha = max(alpha, eval);
+            if (beta <= alpha)
+            {
+                break;
+            }
+        }
+        return maxEval;
+    }
+    else 
+    {
+        int minEval = 9999;
+        for (int i=0;i<moves.size();i++) 
+        {
+			const auto& move = moves[i];
+            Point p1 = move.first;
+            Point p2 = move.second;
+            p2road[p1.y][p1.x] = 0;
+            p2road[p2.y][p2.x] = 0;
+            int eval = minimax(depth - 1, -player, mapsize, alpha, beta);
+            p2road[p1.y][p1.x] = -1;
+            p2road[p2.y][p2.x] = -1;
+            minEval = min(minEval, eval);
+            beta = min(beta, eval);
+            if (beta <= alpha)
+            {
+                break;
+            }
+        }
+        return minEval;
+    }
+}
+
+pair<Point, Point> botMove(int player, int mapsize)
+{
+    int bestValue = -9999;
+    pair<Point, Point> bestMove;
+    vector<pair<Point, Point>> moves = genMoves(player, mapsize);
+    for (int i=0;i<moves.size();i++)
+    {
+		const auto& move = moves[i];
+        Point p1 = move.first;
+        Point p2 = move.second;
+        p2road[p1.y][p1.x] = 0;
+        p2road[p2.y][p2.x] = 0;
+        int moveValue = minimax(3, -player, mapsize, -9999, 9999);
+        p2road[p1.y][p1.x] = 1;
+        p2road[p2.y][p2.x] = 1;
+        if (moveValue > bestValue)
+        {
+            bestMove = move;
+            bestValue = moveValue;
+        }
+    }
+    return bestMove;
+}
+
 int main()
 {
     initwindow(sW, sH, "", -3, -3);
@@ -282,7 +438,7 @@ int main()
         int numb[5];
         char ch[5];
 
-        if (PVP == 1)
+        if (PVP == 1 || PVAI == 1)
         {
             setactivepage(0);
             setvisualpage(0);
@@ -350,6 +506,7 @@ int main()
                 int page = 0;
                 settextstyle(font, direction, font_size);
                 int win = 0;
+                int botwin = 0;
 
                 linii.clear();
                 pozlinii.clear();
@@ -437,30 +594,23 @@ int main()
                                             {
                                                 linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + firstClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + firstClick.y * epsilon},
                                                                   {sW / 2 - mapsize / 2 * epsilon + secondClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + secondClick.y * epsilon} });
-												pozlinii.push_back({ firstClick, secondClick });
+                                                pozlinii.push_back({ firstClick, secondClick });
                                                 if (player == 1)
                                                 {
-													p1road[firstClick.y][firstClick.x] = 1;
-													p1road[secondClick.y][secondClick.x] = 1;
-													if (firstClick.y == secondClick.y && firstClick.x != secondClick.x)
-													{
+                                                    p1road[firstClick.y][firstClick.x] = 1;
+                                                    p1road[secondClick.y][secondClick.x] = 1;
+                                                    if (firstClick.y == secondClick.y && firstClick.x != secondClick.x)
+                                                    {
 
-														p1road[firstClick.y][max(firstClick.x,secondClick.x)-1] = 1;
+                                                        p1road[firstClick.y][max(firstClick.x, secondClick.x) - 1] = 1;
                                                     }
                                                     if (firstClick.y != secondClick.y && firstClick.x == secondClick.x)
                                                     {
 
                                                         p1road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
                                                     }
-                                                    for (int i = 0; i < mapsize; i++)
-                                                    {
-                                                        if (p1road[0][i] == 1)
-                                                        {
-                                                            fill(0, i, mapsize, 0, p1road, win, player);
-                                                        }
-                                                    }
-												}
-                                                if (player == -1)
+                                                }
+                                                if (player == -1 && PVAI == 0)
                                                 {
                                                     p2road[firstClick.y][firstClick.x] = 1;
                                                     p2road[secondClick.y][secondClick.x] = 1;
@@ -474,13 +624,22 @@ int main()
 
                                                         p2road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
                                                     }
-                                                    for (int i = 0; i < mapsize; i++)
+                                                }
+                                                if(PVAI == 1)
+                                                {
+                                                    pair<Point, Point> botlinie = botMove(-player, mapsize);
+                                                    pozlinii.push_back(botlinie);
+                                                    linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + botlinie.first.x * epsilon, sH / 2 - mapsize / 2 * epsilon + botlinie.first.y * epsilon},
+																	  {sW / 2 - mapsize / 2 * epsilon + botlinie.second.x * epsilon, sH / 2 - mapsize / 2 * epsilon + botlinie.second.y * epsilon} });
+													win = wincon(player, mapsize);
+                                                    if (win == 2)
                                                     {
-                                                        if (p2road[i][0] == 1)
-                                                        {
-                                                            fill(i, 0, mapsize, 0, p2road, win, player);
-                                                        }
+                                                        botwin = 1;
                                                     }
+                                                }
+                                                if (botwin == 0)
+                                                {
+                                                    win = wincon(player, mapsize);
                                                 }
                                                 switch (win)
                                                 {
@@ -518,7 +677,10 @@ int main()
                                                         break;
                                                 }
                                                 firstClick = { -1, -1 };
-                                                player = -player;
+                                                if (PVAI == 0)
+                                                {
+                                                    player = -player;
+                                                }
                                             }
                                             else 
                                             {
@@ -529,29 +691,23 @@ int main()
                                 }
                             }
                         }
-
-                        if (player == 1)
-                        {
-                            setcolor(COLOR(65, 65, 202));
-                        }
-                        else
-                        {
-                            setcolor(COLOR(202, 65, 65));
-                        }
                         linepage = 1 - linepage;
                     }
 
-                    if (player == -1)
+                    if (PVAI == 0)
                     {
-                        setcolor(COLOR(65, 65, 202));
-                        outtextxy(sW / 8 - textwidth("Turn: Blue")/2, sH / 2, "Turn: Blue");
-                        setcolor(COLOR(202, 65, 65));
-                    }
-                    if (player == 1)
-                    {
-                        setcolor(COLOR(202, 65, 65));
-                        outtextxy(sW / 8 - textwidth("Turn: Red")/2, sH / 2, "Turn: Red");
-                        setcolor(COLOR(65, 65, 202));
+                        if (player == -1)
+                        {
+                            setcolor(COLOR(65, 65, 202));
+                            outtextxy(sW / 8 - textwidth("Turn: Blue") / 2, sH / 2, "Turn: Blue");
+                            setcolor(COLOR(202, 65, 65));
+                        }
+                        if (player == 1)
+                        {
+                            setcolor(COLOR(202, 65, 65));
+                            outtextxy(sW / 8 - textwidth("Turn: Red") / 2, sH / 2, "Turn: Red");
+                            setcolor(COLOR(65, 65, 202));
+                        }
                     }
 
                     page = 1 - page;
