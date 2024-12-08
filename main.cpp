@@ -30,6 +30,10 @@ struct Point {
     int x, y;
 };
 
+struct muchie {
+    int x, y, cost;
+}g[100];
+
 vector<pair<Point, Point>> linii;
 vector<pair<Point, Point>> pozlinii;
 
@@ -37,6 +41,62 @@ int di[5] = { 0, 1, 0, -1 };
 int dj[5] = { 1, 0, -1, 0 };
 int dip[5] = { 0, 2, 0, -2 };
 int djp[5] = { 2, 0, -2, 0 };
+
+void cost_sort(int n)
+{
+	for (int i = 0; i < n - 1; i++)
+	{
+		for (int j = i + 1; j < n; j++)
+		{
+			if (g[i].cost > g[j].cost)
+			{
+				int aux = g[i].cost;
+				g[i].cost = g[j].cost;
+				g[j].cost = aux;
+
+                aux = g[i].x;
+				g[i].x = g[j].x;
+				g[j].x = aux;
+
+                aux = g[i].y;
+				g[i].y = g[j].y;
+				g[j].y = aux;
+			}
+		}
+	}
+}
+
+void kruskal(int n, int m)
+{
+	int k, tata[100], w = 0;
+	cost_sort(m);
+	for (int i = 1; i <= n; i++)
+	{
+		tata[i] = i;
+	}
+	for (int i = 1; i <= m; i++)
+	{
+		if (tata[g[i].x] != tata[g[i].y])
+		{
+			w += g[i].cost;
+			k = tata[g[i].y];
+			for (int j = 1; j <= n; j++)
+			{
+				if (tata[j] == k)
+				{
+					tata[j] = tata[g[i].x];
+				}
+			}
+		}
+	}
+}
+
+void genarbore(int n)
+{
+    int m = 0;
+
+    
+}
 
 void afisMap(int n, vector<vector <int>> a)
 {
@@ -87,9 +147,9 @@ void fill(int istart, int jstart, int n, int v, vector<vector <int>> a, int &win
         Q.pop();
     }
 
-    debugmaps(n);
+    /*debugmaps(n);
 	cout << "mapa din fill: " << '\n';
-	afisMap(n, a);
+	afisMap(n, a);*/
 }
 
 void genMap(int n)
@@ -112,6 +172,7 @@ void genMap(int n)
             }
         }
     }
+    genarbore(n);
 }
 
 int GUI(char text[], int diffx, int diffy)
@@ -289,125 +350,6 @@ int eval(int player, int mapsize)
     return 0;
 }
 
-vector<pair<Point, Point>> genMoves(int player, int mapsize) 
-{
-    vector<pair<Point, Point>> moves;
-
-    for (int i = 0; i < mapsize; i++) 
-    {
-        for (int j = 0; j < mapsize; j++) 
-        {
-            if (map[i][j] == player) 
-            {
-                for (int k = 0; k < 4; k++) 
-                {
-                    int ni = i + dip[k];
-                    int nj = j + djp[k];
-                    if (ni >= 0 && ni < mapsize && nj >= 0 && nj < mapsize && map[ni][nj] == player) 
-                    {
-                        Point p1 = { j, i };
-                        Point p2 = { nj, ni };
-                        if (!exista(p1, p2) && !intersectie(p1, p2, 0, mapsize)) 
-                        {
-                            moves.push_back({ p1, p2 });
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return moves;
-}
-
-int minimax(int depth, int player, int mapsize, int alpha, int beta)
-{
-    int score = eval(player, mapsize);
-
-    if (score == 1000 || score == -1000)
-    {
-        return score;
-    }
-    if (depth == 0)
-    {
-        return score;
-    }
-
-    vector<pair<Point, Point>> moves = genMoves(player, mapsize);
-
-    if (moves.empty())
-    {
-        return score;
-    }
-
-    if (player == 1) 
-    {
-        int maxEval = -9999;
-        for (int i = 0; i < moves.size(); i++)
-        {
-            const auto& move = moves[i];
-            Point p1 = move.first;
-            Point p2 = move.second;
-            p2road[p1.y][p1.x] = 0;
-            p2road[p2.y][p2.x] = 0;
-            int eval = minimax(depth - 1, -player, mapsize, alpha, beta);
-            p2road[p1.y][p1.x] = 1;
-            p2road[p2.y][p2.x] = 1;
-            maxEval = max(maxEval, eval);
-            alpha = max(alpha, eval);
-            if (beta <= alpha)
-            {
-                break;
-            }
-        }
-        return maxEval;
-    }
-    else 
-    {
-        int minEval = 9999;
-        for (int i=0;i<moves.size();i++) 
-        {
-			const auto& move = moves[i];
-            Point p1 = move.first;
-            Point p2 = move.second;
-            p2road[p1.y][p1.x] = 0;
-            p2road[p2.y][p2.x] = 0;
-            int eval = minimax(depth - 1, -player, mapsize, alpha, beta);
-            p2road[p1.y][p1.x] = -1;
-            p2road[p2.y][p2.x] = -1;
-            minEval = min(minEval, eval);
-            beta = min(beta, eval);
-            if (beta <= alpha)
-            {
-                break;
-            }
-        }
-        return minEval;
-    }
-}
-
-pair<Point, Point> botMove(int player, int mapsize)
-{
-    int bestValue = -9999;
-    pair<Point, Point> bestMove;
-    vector<pair<Point, Point>> moves = genMoves(player, mapsize);
-    for (int i=0;i<moves.size();i++)
-    {
-		const auto& move = moves[i];
-        Point p1 = move.first;
-        Point p2 = move.second;
-        p2road[p1.y][p1.x] = 0;
-        p2road[p2.y][p2.x] = 0;
-        int moveValue = minimax(3, -player, mapsize, -9999, 9999);
-        p2road[p1.y][p1.x] = 1;
-        p2road[p2.y][p2.x] = 1;
-        if (moveValue > bestValue)
-        {
-            bestMove = move;
-            bestValue = moveValue;
-        }
-    }
-    return bestMove;
-}
 
 int main()
 {
@@ -627,11 +569,11 @@ int main()
                                                 }
                                                 if(PVAI == 1)
                                                 {
-                                                    pair<Point, Point> botlinie = botMove(-player, mapsize);
+                                                    /*pair<Point, Point> botlinie = botMove(-player, mapsize);
                                                     pozlinii.push_back(botlinie);
                                                     linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + botlinie.first.x * epsilon, sH / 2 - mapsize / 2 * epsilon + botlinie.first.y * epsilon},
 																	  {sW / 2 - mapsize / 2 * epsilon + botlinie.second.x * epsilon, sH / 2 - mapsize / 2 * epsilon + botlinie.second.y * epsilon} });
-													win = wincon(player, mapsize);
+													win = wincon(player, mapsize);*/
                                                     if (win == 2)
                                                     {
                                                         botwin = 1;
