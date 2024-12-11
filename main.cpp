@@ -420,6 +420,8 @@ bool apartine(int i, int j, int n, int m)
 
 int main()
 {
+    int R=0, G=0, B=0;
+    //65, 65, 202
     srand(time(NULL));
     initwindow(sW, sH, "", -3, -3);
 
@@ -438,10 +440,11 @@ int main()
         int PVP = 0;
         int PVAI = 0;
         int BT = 0;
+        int PC = 0;
 
         PVP = GUI("Player V.S. Player", -400, 0);
         PVAI = GUI("Player V.S. AI", 400, 0);
-
+        PC = GUI("Player Color", -400, 200);
         BT = GUI("Bot Difficulty", 400, 200);
 
         settextstyle(5, 0, sH/100);
@@ -450,6 +453,47 @@ int main()
 
         int numb[5];
         char ch[5];
+
+        int AcPg = 0;
+        int AP = 0, GM = 0, RV = 0;
+
+        if (PC == 1)
+        {
+            setactivepage(0);
+            setvisualpage(0);
+            cleardevice();
+
+            do
+            {
+                setactivepage(AcPg);
+                setvisualpage(1 - AcPg);
+                cleardevice();
+
+                AP = GUI("Albastru & Portocaliu", 0, 0);
+                GM = GUI("Galben & Mov", 0, -200);
+                RV = GUI("Rosu & Verde", 0, 200);
+
+                if (GetKeyState(VK_ESCAPE) & 0x8000)
+                {
+                    break;
+                }
+
+                AcPg = 1 - AcPg;
+            }while (1);
+
+            if (AP)
+            {
+                R = 255; G = 153, B = 51;
+            }
+            if (GM)
+            {
+                R = 255; G = 102, B = 255;
+            }
+            if (RV)
+            {
+                R = 102; G = 255, B = 102;
+            }
+        }
 
         if (BT == 1)
         {
@@ -603,13 +647,13 @@ int main()
                         const auto& linePair = linii[i];
                         if (playercolor == 1)
                         {
-                            setcolor(COLOR(65, 65, 202));
+                            setcolor(COLOR(B, G, R));
                             playercolor = -playercolor;
                             
                         }
 						else if (playercolor == -1)
                         {
-                            setcolor(COLOR(202, 65, 65));
+                            setcolor(COLOR(R, G, B));
 							playercolor = -playercolor;
                         }
                         line(linePair.first.x, linePair.first.y, linePair.second.x, linePair.second.y);
@@ -770,14 +814,14 @@ int main()
                                 setactivepage(0);
                                 setvisualpage(0);
                                 cleardevice();
-                                setcolor(COLOR(202, 65, 65));
+                                setcolor(COLOR(R, G, B));
                                 outtextxy(sW / 2 - textwidth("Red wins!") / 2, sH / 2, "Red wins!");
                                 clearmouseclick(WM_LBUTTONDOWN);
                                 while (1)
                                 {
                                     if (GetKeyState(VK_ESCAPE) & 0x8000)
                                     {
-                                        setcolor(COLOR(255, 255, 255));
+                                        setcolor(COLOR(R, G, B));
                                         break;
                                     }
                                 }
@@ -786,14 +830,14 @@ int main()
                                 setactivepage(0);
                                 setvisualpage(0);
                                 cleardevice();
-                                setcolor(COLOR(65, 65, 202));
+                                setcolor(COLOR(B, G, R));
                                 outtextxy(sW / 2 - textwidth("Blue wins!") / 2, sH / 2, "Blue wins!");
                                 clearmouseclick(WM_LBUTTONDOWN);
                                 while (1)
                                 {
                                     if (GetKeyState(VK_ESCAPE) & 0x8000)
                                     {
-                                        setcolor(COLOR(255, 255, 255));
+                                        setcolor(COLOR(R, G, B));
                                         break;
                                     }
                                 }
@@ -806,15 +850,15 @@ int main()
                     {
                         if (player == -1)
                         {
-                            setcolor(COLOR(65, 65, 202));
+                            setcolor(COLOR(R, G, B));
                             outtextxy(sW / 8 - textwidth("Turn: Blue") / 2, sH / 2, "Turn: Blue");
-                            setcolor(COLOR(202, 65, 65));
+                            setcolor(COLOR(B, G, R));
                         }
                         if (player == 1)
                         {
-                            setcolor(COLOR(202, 65, 65));
+                            setcolor(COLOR(R, G, B));
                             outtextxy(sW / 8 - textwidth("Turn: Red") / 2, sH / 2, "Turn: Red");
-                            setcolor(COLOR(65, 65, 202));
+                            setcolor(COLOR(B, G, R));
                         }
                     }
 
