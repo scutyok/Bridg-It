@@ -127,18 +127,20 @@ vector<muchie> kruskal(int n, int m)
 }
 
 
-pair<Point, Point> botMove(int player, int mapsize) {
-    // Check if an edge from the original spanning tree is removed
-    for (const auto& edge : spanningTree1) {
+pair<Point, Point> botMove(int player, int mapsize) 
+{
+    for (const auto& edge : spanningTree1) 
+    {
         Point p1 = { edge.x / mapsize, edge.x % mapsize };
         Point p2 = { edge.y / mapsize, edge.y % mapsize };
-        if (!exista(p1, p2) && map[p1.y][p1.x] == player && map[p2.y][p2.x] == player) {
-            // Use an edge from the second spanning tree to reconnect the graph
-            cout << 1;
-            for (const auto& altEdge : spanningTree2) {
+        if (!exista(p1, p2) && map[p1.y][p1.x] == player && map[p2.y][p2.x] == player) 
+        {
+            for (const auto& altEdge : spanningTree2) 
+            {
                 Point altP1 = { altEdge.x / mapsize, altEdge.x % mapsize };
                 Point altP2 = { altEdge.y / mapsize, altEdge.y % mapsize };
-                if (!exista(altP1, altP2) && map[altP1.y][altP1.x] == player && map[altP2.y][altP2.x] == player) {
+                if (!exista(altP1, altP2) && map[altP1.y][altP1.x] == player && map[altP2.y][altP2.x] == player) 
+                {
                     return { altP1, altP2 };
                 }
             }
@@ -147,24 +149,26 @@ pair<Point, Point> botMove(int player, int mapsize) {
     return { { -1, -1 }, { -1, -1 } };
 }
 
-void createEdgeDisjointSpanningTrees(int mapsize) {
-    // Create the first spanning tree using Kruskal's algorithm
+void createEdgeDisjointSpanningTrees(int mapsize) 
+{
     spanningTree1 = kruskal(mapsize, mapsize * mapsize);
 
-    // Initialize a set to keep track of edges in the first spanning tree
     set<pair<int, int>> edgesInFirstTree;
-    for (const auto& edge : spanningTree1) {
+    for (const auto& edge : spanningTree1) 
+    {
         edgesInFirstTree.insert({ min(edge.x, edge.y), max(edge.x, edge.y) });
     }
 
-    // Create the second spanning tree by adding alternate edges
-    for (int i = 0; i < mapsize * mapsize; ++i) {
+    for (int i = 0; i < mapsize * mapsize; ++i) 
+    {
         for (int j = i + 1; j < mapsize * mapsize; ++j) {
-            if (map[i / mapsize][i % mapsize] == map[j / mapsize][j % mapsize]) {
+            if (map[i / mapsize][i % mapsize] == map[j / mapsize][j % mapsize]) 
+            {
                 pair<int, int> edge = { min(i, j), max(i, j) };
-                if (edgesInFirstTree.find(edge) == edgesInFirstTree.end()) {
-                    spanningTree2.push_back({ i, j, 1 }); // Add alternate edge with cost 1
-                    edgesInFirstTree.insert(edge); // Mark this edge as used
+                if (edgesInFirstTree.find(edge) == edgesInFirstTree.end()) 
+                {
+                    spanningTree2.push_back({ i, j, 1 });
+                    edgesInFirstTree.insert(edge);
                 }
             }
         }
@@ -224,9 +228,9 @@ void fill(int istart, int jstart, int n, int v, vector<vector <int>> a, int &win
         Q.pop();
     }
 
-    debugmaps(n);
+    /*debugmaps(n);
 	cout << "mapa din fill: " << '\n';
-	afisMap(n, a);
+	afisMap(n, a);*/
 }
 
 void genMap(int n)
@@ -315,7 +319,7 @@ void Fullscreen()
     }
 }
 
-void drawMap(int mapsize, int epsilon)
+void drawMap(int mapsize, int epsilon, int r, int g, int b)
 {
     POINT pnt;
     GetCursorPos(&pnt);
@@ -338,14 +342,14 @@ void drawMap(int mapsize, int epsilon)
             {
                 setcolor(RED);
                 circle(circleX, circleY, radius);
-                setfillstyle(SOLID_FILL, COLOR(202, 65, 65));
+                setfillstyle(SOLID_FILL, COLOR(r, g, b));
                 floodfill(circleX, circleY, RED);
             }
             else if (map[i][j] == -1)
             {
                 setcolor(BLUE);
                 circle(circleX, circleY, radius);
-                setfillstyle(SOLID_FILL, COLOR(65, 65, 202));
+                setfillstyle(SOLID_FILL, COLOR(b, g, r));
                 floodfill(circleX, circleY, BLUE);
             }
         }
@@ -429,6 +433,8 @@ int main()
 
     setbkcolor(COLOR(16, 16, 16));
 
+    int AP = 0, GM = 0, RV = 0;
+
     while (1)
     {
         Fullscreen();
@@ -454,46 +460,44 @@ int main()
         int numb[5];
         char ch[5];
 
-        int AcPg = 0;
-        int AP = 0, GM = 0, RV = 0;
-
         if (PC == 1)
         {
             setactivepage(0);
             setvisualpage(0);
             cleardevice();
 
-            do
+            while (1)
             {
-                setactivepage(AcPg);
-                setvisualpage(1 - AcPg);
+                setactivepage(activePage);
+                setvisualpage(1 - activePage);
                 cleardevice();
 
                 AP = GUI("Albastru & Portocaliu", 0, 0);
-                GM = GUI("Galben & Mov", 0, -200);
-                RV = GUI("Rosu & Verde", 0, 200);
+                GM = GUI("Turcoaz & Verde", 0, -200);
+                RV = GUI("Mov & Roz", 0, 200);
 
-                if (GetKeyState(VK_ESCAPE) & 0x8000)
+                if ((GetKeyState(VK_ESCAPE) & 0x8000) || AP || GM || RV)
                 {
                     break;
                 }
-
-                AcPg = 1 - AcPg;
-            }while (1);
-
-            if (AP)
-            {
-                R = 255; G = 153, B = 51;
-            }
-            if (GM)
-            {
-                R = 255; G = 102, B = 255;
-            }
-            if (RV)
-            {
-                R = 102; G = 255, B = 102;
+                delay(25);
+                activePage = 1 - activePage;
             }
         }
+        R = 255; G = 153, B = 51;
+        if (AP)
+        {
+            R = 255; G = 153, B = 51;
+        }
+        if (GM)
+        {
+            R = 200; G = 255; B = 16;
+        }
+        if (RV)
+        {
+            R = 255; G = 105, B = 102;
+        }
+
 
         if (BT == 1)
         {
@@ -580,7 +584,14 @@ int main()
                         if (key < 48 || key > 57)
                         {
                             mapsize = charNr_to_int(ch);
-                            break;
+                            if (mapsize % 2 == 0)
+                            {
+                                outtextxy(sW / 2 - textwidth("Please select an odd number")/2, sH/ 2 + textheight("Please select an odd number")*2, "Please select an odd number");
+                            }
+                            else
+                            {
+                                break;
+                            }
                         }
                     }
                     if (GetKeyState(VK_ESCAPE) & 0x8000)
@@ -639,7 +650,7 @@ int main()
                 {
                     int epsilon = sH / 10;
 
-                    drawMap(mapsize, epsilon);
+                    drawMap(mapsize, epsilon, R, G, B);
 
                     int playercolor = -1;
                     for (int i = 0; i < linii.size(); i++)
@@ -735,6 +746,10 @@ int main()
                                                         p2road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
                                                     }
                                                 }
+                                                if (PVAI == 0)
+                                                {
+                                                    win = wincon(player, mapsize);
+                                                }
                                                 firstClick = { -1, -1 };
                                                 if (PVAI == 0)
                                                 {
@@ -753,7 +768,7 @@ int main()
                         if (PVAI == 1 && BotDifficulty == 2 && mutare == 1)
                         {
                             pair<Point, Point> botlinie = botMove(-player, mapsize);
-                            cout << botlinie.first.x << " " << botlinie.first.y << " " << botlinie.second.x << " " << botlinie.second.y << '\n';
+                            //cout << botlinie.first.x << " " << botlinie.first.y << " " << botlinie.second.x << " " << botlinie.second.y << '\n';
                             if (botlinie.first.x != -1 && botlinie.first.y != -1)
                             {
                                 pozlinii.push_back(botlinie);
@@ -786,14 +801,14 @@ int main()
                                 int deciziei = rand() % mapsize;
                                 int deciziej = rand() % mapsize;
                                 int directie = rand() % 4;
-                                if (apartine(deciziei, deciziej, mapsize, mapsize) && apartine(deciziei + dip[directie], deciziej + djp[directie], mapsize, mapsize))
+                                if (apartine(deciziei, deciziej, mapsize-1, mapsize-1) && apartine(deciziei + dip[directie], deciziej + djp[directie], mapsize-1, mapsize-1))
                                 {
                                     if ((abs(deciziej - deciziej + djp[directie]) == 2 && deciziei == deciziei + dip[directie]) ||
                                         (abs(deciziei - deciziei + dip[directie]) == 2 && deciziej == deciziej + djp[directie]))
                                     {
-                                        if (!exista({ deciziei,deciziej }, { deciziei + dip[directie], deciziej + djp[directie] }) && map[deciziei][deciziej] == -player && map[deciziei + dip[directie]][deciziej + djp[directie]] == -player && !intersectie({ deciziei,deciziej }, { deciziei + dip[directie], deciziej + djp[directie] }, epsilon, mapsize))
+                                        if (!exista({ deciziei,deciziej }, { deciziei + dip[directie], deciziej + djp[directie] }) && map[deciziei][deciziej] == -player && map[deciziei + dip[directie]][deciziej + djp[directie]] == -player && !intersectie({ deciziej,deciziei }, { deciziej + djp[directie], deciziei + dip[directie] }, epsilon, mapsize))
                                         {
-                                            cout << deciziei << " " << deciziej << " " << deciziei + dip[directie] << " " << deciziej + djp[directie] << '\n';
+                                            //cout << deciziei << " " << deciziej << " " << deciziei + dip[directie] << " " << deciziej + djp[directie] << '\n';
                                             pozlinii.push_back({ { deciziei,deciziej },{ deciziei + dip[directie], deciziej + djp[directie] } });
                                             linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + deciziej * epsilon, sH / 2 - mapsize / 2 * epsilon + deciziei * epsilon},
                                                               {sW / 2 - mapsize / 2 * epsilon + (deciziej + djp[directie]) * epsilon, sH / 2 - mapsize / 2 * epsilon + (deciziei + dip[directie]) * epsilon} });
@@ -804,7 +819,7 @@ int main()
                             }
                         }
                         //debugmaps(mapsize);
-                        if (botwin == 0)
+                        if (botwin == 0 && PVAI)
                         {
                             win = wincon(player, mapsize);
                         }
@@ -815,7 +830,7 @@ int main()
                                 setvisualpage(0);
                                 cleardevice();
                                 setcolor(COLOR(R, G, B));
-                                outtextxy(sW / 2 - textwidth("Red wins!") / 2, sH / 2, "Red wins!");
+                                outtextxy(sW / 2 - textwidth("Player 1 wins!") / 2, sH / 2, "Player 1 wins!");
                                 clearmouseclick(WM_LBUTTONDOWN);
                                 while (1)
                                 {
@@ -831,7 +846,7 @@ int main()
                                 setvisualpage(0);
                                 cleardevice();
                                 setcolor(COLOR(B, G, R));
-                                outtextxy(sW / 2 - textwidth("Blue wins!") / 2, sH / 2, "Blue wins!");
+                                outtextxy(sW / 2 - textwidth("Player 2 wins!") / 2, sH / 2, "Player 2 wins!");
                                 clearmouseclick(WM_LBUTTONDOWN);
                                 while (1)
                                 {
@@ -850,14 +865,14 @@ int main()
                     {
                         if (player == -1)
                         {
-                            setcolor(COLOR(R, G, B));
-                            outtextxy(sW / 8 - textwidth("Turn: Blue") / 2, sH / 2, "Turn: Blue");
                             setcolor(COLOR(B, G, R));
+                            outtextxy(sW / 8 - textwidth("Turn: Player 2") / 2, sH / 2, "Turn: Player 2");
+                            setcolor(COLOR(R, G, B));
                         }
                         if (player == 1)
                         {
                             setcolor(COLOR(R, G, B));
-                            outtextxy(sW / 8 - textwidth("Turn: Red") / 2, sH / 2, "Turn: Red");
+                            outtextxy(sW / 8 - textwidth("Turn: Player 1") / 2, sH / 2, "Turn: Player 1");
                             setcolor(COLOR(B, G, R));
                         }
                     }
@@ -874,10 +889,9 @@ int main()
                 }
             }
         }
-
+        delay(25);
         activePage = 1 - activePage;
 
-        delay(10);
     }
     return 0;
 }
