@@ -69,4 +69,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="arbore1.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+    <Text Include="arbore2.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

@@ -15,6 +15,8 @@ using namespace std;
 vector<vector<int>> map;
 vector<vector<int>> p1road;
 vector<vector<int>> p2road;
+vector<vector<int>> botar1;
+vector<vector<int>> botar2;
 
 #define font 8
 #define direction 0
@@ -56,6 +58,13 @@ void afisMap(int n, vector<vector <int>> a)
         cout << '\n';
     }
 }
+
+
+bool apartine(int i, int j, int n, int m)
+{
+    return i >= 1 && j >= 1 && i <= n && j <= m;
+}
+
 
 bool exista(Point p1, Point p2)
 {
@@ -233,6 +242,44 @@ void fill(int istart, int jstart, int n, int v, vector<vector <int>> a, int &win
 	afisMap(n, a);*/
 }
 
+void genbotar1(int n)
+{
+    for (int i = 0; i < n ; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (j % 2 == 1 && j+i>=n && botar1[i][j]==0)
+            {
+                if (apartine(i+1, j, n, n) && apartine(i-1, j, n, n))
+                {
+                    if (botar1[i - 1][j] == 1 && botar1[i + 1][j] == 1)
+                    {
+                        botar1[i][j] = 1;
+                    }
+                }
+            }
+            if (j % 2 == 0 && j+i<n && botar1[i][j] == 0)
+            {
+                if (apartine(i, j + 1, n, n) && apartine(i, j - 1, n, n))
+                {
+                    {
+                        botar1[i][j] = 1;
+                    }
+                }
+            }
+        }
+    }
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            cout << setw(5) << botar1[i][j];
+        }
+        cout << '\n';
+    }
+    cout << '\n';
+}
+
 void genMap(int n)
 {
     for (int i = 0; i < n; i++)
@@ -242,6 +289,8 @@ void genMap(int n)
             if (i % 2 == 0 && j % 2 != 0)
             {
                 map[i][j] = 1;
+                botar1[i][j] = 1;
+                botar2[i][j] = 1;
             }
             else if (i % 2 != 0 && j % 2 == 0)
             {
@@ -253,6 +302,26 @@ void genMap(int n)
             }
         }
     }
+    genbotar1(n);
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            cout << setw(5) << botar1[i][j];
+        }
+        cout << '\n';
+    }
+    cout << '\n';
+    /*for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            cout << setw(5) << botar2[i][j];
+        }
+        cout << '\n';
+    }*/
+    cout << '\n';
     createEdgeDisjointSpanningTrees(n);
 }
 
@@ -415,11 +484,6 @@ int eval(int player, int mapsize)
     if (win == 1) return 1000;
     if (win == 2) return -1000;
     return 0;
-}
-
-bool apartine(int i, int j, int n, int m)
-{
-    return i >= 1 && j >= 1 && i <= n && j <= m;
 }
 
 int main()
@@ -609,6 +673,18 @@ int main()
                 for (int i = 0; i < mapsize; i++)
                 {
                     map[i].resize(mapsize);
+                }
+
+                botar1.resize(mapsize+1);
+                for (int i = 0; i < mapsize; i++)
+                {
+                    botar1[i].resize(mapsize);
+                }
+
+                botar2.resize(mapsize+1);
+                for (int i = 0; i < mapsize; i++)
+                {
+                    botar2[i].resize(mapsize);
                 }
 
                 genMap(mapsize);
