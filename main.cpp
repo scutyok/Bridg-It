@@ -17,6 +17,7 @@ vector<vector<int>> p1road;
 vector<vector<int>> p2road;
 vector<vector<int>> botar1;
 vector<vector<int>> botar2;
+vector<vector<int>> botaux;
 
 #define font 8
 #define direction 0
@@ -59,12 +60,10 @@ void afisMap(int n, vector<vector <int>> a)
     }
 }
 
-
 bool apartine(int i, int j, int n, int m)
 {
     return i >= 1 && j >= 1 && i <= n && j <= m;
 }
-
 
 bool exista(Point p1, Point p2)
 {
@@ -80,136 +79,15 @@ bool exista(Point p1, Point p2)
     return false;
 }
 
-vector<muchie> spanningTree1;
-vector<muchie> spanningTree2;
-
-void cost_sort(int n)
-{
-    for (int i = 0; i < n - 1; i++)
-    {
-        for (int j = i + 1; j < n; j++)
-        {
-            if (g[i].cost > g[j].cost)
-            {
-                int aux = g[i].cost;
-                g[i].cost = g[j].cost;
-                g[j].cost = aux;
-
-                aux = g[i].x;
-                g[i].x = g[j].x;
-                g[j].x = aux;
-
-                aux = g[i].y;
-                g[i].y = g[j].y;
-                g[j].y = aux;
-            }
-        }
-    }
-}
-
-vector<muchie> kruskal(int n, int m)
-{
-    int k, tata[100], w = 0;
-    vector<muchie> mst;
-    cost_sort(m);
-    for (int i = 1; i <= n; i++)
-    {
-        tata[i] = i;
-    }
-    for (int i = 1; i <= m; i++)
-    {
-        if (tata[g[i].x] != tata[g[i].y])
-        {
-            w += g[i].cost;
-            mst.push_back(g[i]);
-            k = tata[g[i].y];
-            for (int j = 1; j <= n; j++)
-            {
-                if (tata[j] == k)
-                {
-                    tata[j] = tata[g[i].x];
-                }
-            }
-        }
-    }
-    return mst;
-}
-
-
-pair<Point, Point> botMove(int player, int mapsize) 
-{
-    for (const auto& edge : spanningTree1) 
-    {
-        Point p1 = { edge.x / mapsize, edge.x % mapsize };
-        Point p2 = { edge.y / mapsize, edge.y % mapsize };
-        if (!exista(p1, p2) && map[p1.y][p1.x] == player && map[p2.y][p2.x] == player) 
-        {
-            for (const auto& altEdge : spanningTree2) 
-            {
-                Point altP1 = { altEdge.x / mapsize, altEdge.x % mapsize };
-                Point altP2 = { altEdge.y / mapsize, altEdge.y % mapsize };
-                if (!exista(altP1, altP2) && map[altP1.y][altP1.x] == player && map[altP2.y][altP2.x] == player) 
-                {
-                    return { altP1, altP2 };
-                }
-            }
-        }
-    }
-    return { { -1, -1 }, { -1, -1 } };
-}
-
-void createEdgeDisjointSpanningTrees(int mapsize) 
-{
-    spanningTree1 = kruskal(mapsize, mapsize * mapsize);
-
-    set<pair<int, int>> edgesInFirstTree;
-    for (const auto& edge : spanningTree1) 
-    {
-        edgesInFirstTree.insert({ min(edge.x, edge.y), max(edge.x, edge.y) });
-    }
-
-    for (int i = 0; i < mapsize * mapsize; ++i) 
-    {
-        for (int j = i + 1; j < mapsize * mapsize; ++j) {
-            if (map[i / mapsize][i % mapsize] == map[j / mapsize][j % mapsize]) 
-            {
-                pair<int, int> edge = { min(i, j), max(i, j) };
-                if (edgesInFirstTree.find(edge) == edgesInFirstTree.end()) 
-                {
-                    spanningTree2.push_back({ i, j, 1 });
-                    edgesInFirstTree.insert(edge);
-                }
-            }
-        }
-    }
-}
-
-void afisSpanningTrees()
-{
-    cout << "tree1: ";
-    for (const auto& edge : spanningTree1)
-    {
-        cout << edge.x << " " << edge.y << " " << edge.cost << " " << '\n';
-    }
-    cout << "tree2: ";
-    for (const auto& edge : spanningTree2)
-    {
-        cout << edge.x << " " << edge.y << " " << edge.cost << " " << '\n';
-    }
-    cout << '\n';
-}
-
 void debugmaps(int n)
 {
     cout << "mapa playerului 1: " << '\n';
     afisMap(n, p1road);
     cout << "mapa playerului 2: " <<'\n';
     afisMap(n, p2road);
-    cout << "Spanning Trees: " << '\n';
-    afisSpanningTrees();
 }
 
-void fill(int istart, int jstart, int n, int v, vector<vector <int>> a, int &win, int player)
+void fillwin(int istart, int jstart, int n, int v, vector<vector <int>> a, int &win, int player)
 {
     queue<pair<int, int>> Q;
     Q.push(make_pair(istart, jstart));
@@ -237,16 +115,35 @@ void fill(int istart, int jstart, int n, int v, vector<vector <int>> a, int &win
         Q.pop();
     }
 
-    /*debugmaps(n);
-	cout << "mapa din fill: " << '\n';
-	afisMap(n, a);*/
+    debugmaps(n);
+}
+
+void fillbot(int istart, int jstart, int n, int v, vector<vector <int>> b)
+{
+    queue<pair<int, int>> Q;
+    Q.push(make_pair(istart, jstart));
+    b[istart][jstart] = v;
+    while (!Q.empty())
+    {
+        int i = Q.front().first, j = Q.front().second;
+        for (int k = 0; k < 4; k++)
+        {
+            int iv = i + di[k], jv = j + dj[k];
+            if (iv >= 0 && iv < n && jv >= 0 && jv < n && b[iv][jv] >= 1 && b[iv][jv] != v)
+            {
+                b[iv][jv] = v;
+                Q.push(make_pair(iv, jv));
+            }
+        }
+        Q.pop();
+    }
 }
 
 void genbotar1(int n)
 {
-    for (int i = 0; i < n ; i++)
+    for (int i = 1; i < n-1; i++)
     {
-        for (int j = 0; j < n; j++)
+        for (int j = 1; j < n-1; j++)
         {
             if (j % 2 == 1 && j+i>=n && botar1[i][j]==0)
             {
@@ -262,14 +159,24 @@ void genbotar1(int n)
             {
                 if (apartine(i, j + 1, n, n) && apartine(i, j - 1, n, n))
                 {
+                    if(botar1[i][j-1] == 1 && botar1[i][j+1] == 1)
                     {
                         botar1[i][j] = 1;
                     }
                 }
             }
+            if (i + j == n - 1)
+            {
+                botar1[i][j] = 1 - botar1[i][j];
+            }
         }
     }
-    for (int i = 0; i < n; i++)
+    for (int i = 1; i < n - 1; i++)
+    {
+        botar1[0][i] = 2;
+        botar1[n - 1][i] = 2;
+    }
+    /*for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
         {
@@ -277,7 +184,73 @@ void genbotar1(int n)
         }
         cout << '\n';
     }
-    cout << '\n';
+    cout << '\n';*/
+}
+
+void genbotar2(int n)
+{
+    for (int i = 1; i < n - 1; i++)
+    {
+        for (int j = 1; j < n - 1; j++)
+        {
+            if (j % 2 == 1 && j + i >= n && botar2[i][j] == 0)
+            {
+                if (apartine(i + 1, j, n, n) && apartine(i - 1, j, n, n))
+                {
+                    if (botar2[i - 1][j] == 1 && botar2[i + 1][j] == 1)
+                    {
+                        botar2[i][j] = 1;
+                    }
+                }
+            }
+            if (j % 2 == 0 && j + i < n && botar2[i][j] == 0)
+            {
+                if (apartine(i, j + 1, n, n) && apartine(i, j - 1, n, n))
+                {
+                    if (botar2[i][j - 1] == 1 && botar2[i][j + 1] == 1)
+                    {
+                        botar2[i][j] = 1;
+                    }
+                }
+            }
+        }
+    }
+    for (int i = 1; i < n - 1; i++)
+    {
+        for (int j = 1; j < n - 1; j++)
+        {
+            botaux[i][j] = botar2[j][i];
+        }
+    }
+    for (int i = 1; i < n - 1; i++)
+    {
+        for (int j = 1; j < n - 1; j++)
+        {
+            botar2[i-1][j-1] = botaux[i][j];
+        }
+    }
+    for (int i = 1; i < n - 1; i++)
+    {
+        botar2[0][i] = 2;
+        botar2[n - 1][i] = 2;
+    }
+    for (int i = 1; i < n - 1; i++)
+    {
+        if (i % 2 != 0)
+        {
+            botar2[i][n - 2] = 0;
+            botar2[n - 2][i] = 0;
+        }
+    }
+    /*for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            cout << setw(5) << botar2[i][j];
+        }
+        cout << '\n';
+    }
+    cout << '\n';*/
 }
 
 void genMap(int n)
@@ -303,26 +276,99 @@ void genMap(int n)
         }
     }
     genbotar1(n);
+    genbotar2(n);
+    cout << '\n';
+}
 
+void botmove(int n)
+{
+    int arbore1 = 0, arbore2 = 0, auxi, auxj;
     for (int i = 0; i < n; i++)
     {
-        for (int j = 0; j < n; j++)
+        for (int j = 1; j < n - 1; j++)
         {
-            cout << setw(5) << botar1[i][j];
+            botaux[i][j] = botar1[i][j];
         }
-        cout << '\n';
     }
-    cout << '\n';
-    /*for (int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
-        for (int j = 0; j < n; j++)
+        for (int j = 1; j < n - 1; j++)
         {
-            cout << setw(5) << botar2[i][j];
+            if (botaux[i][j] >= 1)
+            {
+                arbore1++;
+                if (arbore1 == 2)
+                {
+                    auxi = i;
+                    auxj = j;
+                }
+                fillbot(i, j, n, 0, botaux);
+            }
         }
-        cout << '\n';
-    }*/
-    cout << '\n';
-    createEdgeDisjointSpanningTrees(n);
+    }
+    if (arbore1 == 2)
+    {
+        for (int k = 0; k <= 3; k++)
+        {
+            int ik = auxi + di[k];
+            int jk = auxj + dj[k];
+            int ikp = auxi + dip[k];
+            int jkp = auxj + djp[k];
+            if (apartine(ik, jk, n, n) && apartine(ikp,jkp,n,n))
+            {
+                if (botar2[ik][jk] == 1 && botar2[ikp][jkp] == 1 && botar1[ik][jk]!=1)
+                {
+                    botar1[ik][jk] = 2;
+                    botar1[ikp][jkp] = 2;
+                    botar2[ik][jk] = 2;
+                    botar2[ikp][jkp] = 2;
+                }
+            }
+        }
+    }
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 1; j < n - 1; j++)
+        {
+            botaux[i][j] = botar2[i][j];
+        }
+    }
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 1; j < n - 1; j++)
+        {
+            if (botaux[i][j] >= 1)
+            {
+                arbore2++;
+                if (arbore2 == 2)
+                {
+                    auxi = i;
+                    auxj = j;
+                }
+                fillbot(i, j, n, 0, botaux);
+            }
+        }
+    }
+    if (arbore2 == 2)
+    {
+        for (int k = 0; k <= 3; k++)
+        {
+            int ik = auxi + di[k];
+            int jk = auxj + dj[k];
+            int ikp = auxi + dip[k];
+            int jkp = auxj + djp[k];
+            if (apartine(ik, jk, n, n) && apartine(ikp, jkp, n, n))
+            {
+                if (botar1[ik][jk] == 1 && botar1[ikp][jkp] == 1 && botar2[ik][jk] != 1)
+                {
+                    botar1[ik][jk] = 2;
+                    botar1[ikp][jkp] = 2;
+                    botar2[ik][jk] = 2;
+                    botar2[ikp][jkp] = 2;
+                }
+            }
+        }
+    }
 }
 
 int GUI(char text[], int diffx, int diffy)
@@ -461,7 +507,8 @@ int wincon(int player, int mapsize)
         {
             if (p1road[0][i] == 1) 
             {
-                fill(0, i, mapsize, 0, p1road, win, player);
+                cout << 1;
+                fillwin(0, i, mapsize, 0, p1road, win, player);
             }
         }
     }
@@ -471,7 +518,8 @@ int wincon(int player, int mapsize)
         {
             if (p2road[i][0] == 1)
             {
-                fill(i, 0, mapsize, 0, p2road, win, player);
+                cout << 2;
+                fillwin(i, 0, mapsize, 0, p2road, win, player);
             }
         }
     }
@@ -481,8 +529,6 @@ int wincon(int player, int mapsize)
 int eval(int player, int mapsize) 
 {
     int win = wincon(player, mapsize);
-    if (win == 1) return 1000;
-    if (win == 2) return -1000;
     return 0;
 }
 
@@ -687,10 +733,13 @@ int main()
                     botar2[i].resize(mapsize);
                 }
 
-                genMap(mapsize);
+                botaux.resize(mapsize + 1);
+                for (int i = 0; i < mapsize; i++)
+                {
+                    botaux[i].resize(mapsize);
+                }
 
-                thread mapThread(genMap, mapsize);
-                mapThread.join();
+                genMap(mapsize);
 
                 setactivepage(0);
                 setvisualpage(0);
@@ -722,6 +771,12 @@ int main()
                     p2road[i].resize(mapsize);
                 }
 
+                if (PVAI)
+                {
+                    player = -player;
+                    mutare = 1;
+                }
+
                 while (1)
                 {
                     int epsilon = sH / 10;
@@ -729,6 +784,48 @@ int main()
                     drawMap(mapsize, epsilon, R, G, B);
 
                     int playercolor = -1;
+
+                    if (PVAI == 1 && BotDifficulty == 2 && mutare == 1)
+                    {
+
+                    }
+                    if (PVAI == 1 && BotDifficulty == 1 && mutare == 1)
+                    {
+                        while (mutare == 1)
+                        {
+                            int deciziei = rand() % mapsize;
+                            int deciziej = rand() % mapsize;
+                            int directie = rand() % 4;
+                            if (apartine(deciziei, deciziej, mapsize - 1, mapsize - 1) && apartine(deciziei + dip[directie], deciziej + djp[directie], mapsize - 1, mapsize - 1))
+                            {
+                                if ((abs(deciziej - deciziej + djp[directie]) == 2 && deciziei == deciziei + dip[directie]) ||
+                                    (abs(deciziei - deciziei + dip[directie]) == 2 && deciziej == deciziej + djp[directie]))
+                                {
+                                    if (!exista({ deciziei,deciziej }, { deciziei + dip[directie], deciziej + djp[directie] }) && map[deciziei][deciziej] == -player && map[deciziei + dip[directie]][deciziej + djp[directie]] == -player && !intersectie({ deciziej,deciziei }, { deciziej + djp[directie], deciziei + dip[directie] }, epsilon, mapsize))
+                                    {
+                                        //cout << deciziei << " " << deciziej << " " << deciziei + dip[directie] << " " << deciziej + djp[directie] << '\n';
+                                        pozlinii.push_back({ { deciziei,deciziej },{ deciziei + dip[directie], deciziej + djp[directie] } });
+                                        linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + deciziej * epsilon, sH / 2 - mapsize / 2 * epsilon + deciziei * epsilon},
+                                                          {sW / 2 - mapsize / 2 * epsilon + (deciziej + djp[directie]) * epsilon, sH / 2 - mapsize / 2 * epsilon + (deciziei + dip[directie]) * epsilon} });
+                                        mutare = 0;
+                                        p1road[deciziei][deciziej] = 1;
+                                        p1road[deciziei + dip[directie]][deciziej + djp[directie]] = 1;
+                                        if (deciziei == deciziei + dip[directie] && deciziej != deciziej + djp[directie])
+                                        {
+
+                                            p1road[deciziei][max(deciziej, deciziej + djp[directie]) - 1] = 1;
+                                        }
+                                        if (deciziei != deciziei + dip[directie] && deciziej == deciziej + djp[directie])
+                                        {
+
+                                            p1road[max(deciziei, deciziei + dip[directie]) - 1][deciziej] = 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     for (int i = 0; i < linii.size(); i++)
                     {
                         const auto& linePair = linii[i];
@@ -766,138 +863,120 @@ int main()
                         setvisualpage(1 - linepage);
                         cleardevice();
 
-                        for (int i = 0; i < mapsize; i++)
+                        if (mutare == 0)
                         {
-                            for (int j = 0; j < mapsize; j++)
+                            for (int i = 0; i < mapsize; i++)
                             {
-                                int circleX = sW / 2 - mapsize / 2 * epsilon + j * epsilon;
-                                int circleY = sH / 2 - mapsize / 2 * epsilon + i * epsilon;
-                                if (sqrt(pow(clickX - circleX, 2) + pow(clickY - circleY, 2)) <= 10)
+                                for (int j = 0; j < mapsize; j++)
                                 {
-                                    if (firstClick.x == -1 && firstClick.y == -1)
+                                    int circleX = sW / 2 - mapsize / 2 * epsilon + j * epsilon;
+                                    int circleY = sH / 2 - mapsize / 2 * epsilon + i * epsilon;
+                                    if (sqrt(pow(clickX - circleX, 2) + pow(clickY - circleY, 2)) <= 10)
                                     {
-                                        firstClick = { j, i };
-                                    }
-                                    else
-                                    {
-                                        Point secondClick = { j, i };
-                                        if ((abs(firstClick.x - secondClick.x) == 2 && firstClick.y == secondClick.y) ||
-                                            (abs(firstClick.y - secondClick.y) == 2 && firstClick.x == secondClick.x)) 
-                                        { 
-                                            bool canDraw = true;
-
-                                            if (canDraw && !exista(firstClick, secondClick) && map[firstClick.y][firstClick.x] == player && map[secondClick.y][secondClick.x] == player && !intersectie(firstClick, secondClick, epsilon, mapsize))
-                                            {
-                                                linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + firstClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + firstClick.y * epsilon},
-                                                                  {sW / 2 - mapsize / 2 * epsilon + secondClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + secondClick.y * epsilon} });
-                                                pozlinii.push_back({ firstClick, secondClick });
-                                                mutare = 1;
-                                                if (player == 1)
-                                                {
-                                                    p1road[firstClick.y][firstClick.x] = 1;
-                                                    p1road[secondClick.y][secondClick.x] = 1;
-                                                    if (firstClick.y == secondClick.y && firstClick.x != secondClick.x)
-                                                    {
-
-                                                        p1road[firstClick.y][max(firstClick.x, secondClick.x) - 1] = 1;
-                                                    }
-                                                    if (firstClick.y != secondClick.y && firstClick.x == secondClick.x)
-                                                    {
-
-                                                        p1road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
-                                                    }
-                                                }
-                                                if (player == -1 && PVAI == 0)
-                                                {
-                                                    p2road[firstClick.y][firstClick.x] = 1;
-                                                    p2road[secondClick.y][secondClick.x] = 1;
-                                                    if (firstClick.y == secondClick.y && firstClick.x != secondClick.x)
-                                                    {
-
-                                                        p2road[firstClick.y][max(firstClick.x, secondClick.x) - 1] = 1;
-                                                    }
-                                                    if (firstClick.y != secondClick.y && firstClick.x == secondClick.x)
-                                                    {
-
-                                                        p2road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
-                                                    }
-                                                }
-                                                if (PVAI == 0)
-                                                {
-                                                    win = wincon(player, mapsize);
-                                                }
-                                                firstClick = { -1, -1 };
-                                                if (PVAI == 0)
-                                                {
-                                                    player = -player;
-                                                }
-                                            }
-                                            else 
-                                            {
-                                                firstClick = { -1, -1 };
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if (PVAI == 1 && BotDifficulty == 2 && mutare == 1)
-                        {
-                            pair<Point, Point> botlinie = botMove(-player, mapsize);
-                            //cout << botlinie.first.x << " " << botlinie.first.y << " " << botlinie.second.x << " " << botlinie.second.y << '\n';
-                            if (botlinie.first.x != -1 && botlinie.first.y != -1)
-                            {
-                                pozlinii.push_back(botlinie);
-                                linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + botlinie.first.x * epsilon, sH / 2 - mapsize / 2 * epsilon + botlinie.first.y * epsilon},
-                                                  {sW / 2 - mapsize / 2 * epsilon + botlinie.second.x * epsilon, sH / 2 - mapsize / 2 * epsilon + botlinie.second.y * epsilon} });
-                                win = wincon(-player, mapsize);
-                                if (win == 2)
-                                {
-                                    botwin = 1;
-                                }
-                                p2road[botlinie.first.y][botlinie.first.x] = 1;
-                                p2road[botlinie.second.y][botlinie.second.x] = 1;
-                                if (botlinie.first.y == botlinie.second.y && botlinie.first.x != botlinie.second.x)
-                                {
-
-                                    p2road[botlinie.first.y][max(botlinie.first.x, botlinie.second.x) - 1] = 1;
-                                }
-                                if (botlinie.first.y != botlinie.second.y && botlinie.first.x == botlinie.second.x)
-                                {
-
-                                    p2road[max(botlinie.first.y, botlinie.second.y) - 1][botlinie.first.x] = 1;
-                                }
-                            }
-                            mutare = 0;
-                        }
-                        if (PVAI == 1 && BotDifficulty == 1 && mutare == 1)
-                        {
-                            while (mutare == 1)
-                            {    
-                                int deciziei = rand() % mapsize;
-                                int deciziej = rand() % mapsize;
-                                int directie = rand() % 4;
-                                if (apartine(deciziei, deciziej, mapsize-1, mapsize-1) && apartine(deciziei + dip[directie], deciziej + djp[directie], mapsize-1, mapsize-1))
-                                {
-                                    if ((abs(deciziej - deciziej + djp[directie]) == 2 && deciziei == deciziei + dip[directie]) ||
-                                        (abs(deciziei - deciziei + dip[directie]) == 2 && deciziej == deciziej + djp[directie]))
-                                    {
-                                        if (!exista({ deciziei,deciziej }, { deciziei + dip[directie], deciziej + djp[directie] }) && map[deciziei][deciziej] == -player && map[deciziei + dip[directie]][deciziej + djp[directie]] == -player && !intersectie({ deciziej,deciziei }, { deciziej + djp[directie], deciziei + dip[directie] }, epsilon, mapsize))
+                                        if (firstClick.x == -1 && firstClick.y == -1)
                                         {
-                                            //cout << deciziei << " " << deciziej << " " << deciziei + dip[directie] << " " << deciziej + djp[directie] << '\n';
-                                            pozlinii.push_back({ { deciziei,deciziej },{ deciziei + dip[directie], deciziej + djp[directie] } });
-                                            linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + deciziej * epsilon, sH / 2 - mapsize / 2 * epsilon + deciziei * epsilon},
-                                                              {sW / 2 - mapsize / 2 * epsilon + (deciziej + djp[directie]) * epsilon, sH / 2 - mapsize / 2 * epsilon + (deciziei + dip[directie]) * epsilon} });
-                                            mutare = 0;
+                                            firstClick = { j, i };
+                                        }
+                                        else
+                                        {
+                                            Point secondClick = { j, i };
+                                            if ((abs(firstClick.x - secondClick.x) == 2 && firstClick.y == secondClick.y) ||
+                                                (abs(firstClick.y - secondClick.y) == 2 && firstClick.x == secondClick.x))
+                                            {
+                                                bool canDraw = true;
+
+                                                if (canDraw && !exista(firstClick, secondClick) && map[firstClick.y][firstClick.x] == player && map[secondClick.y][secondClick.x] == player && !intersectie(firstClick, secondClick, epsilon, mapsize))
+                                                {
+                                                    linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + firstClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + firstClick.y * epsilon},
+                                                                      {sW / 2 - mapsize / 2 * epsilon + secondClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + secondClick.y * epsilon} });
+                                                    pozlinii.push_back({ firstClick, secondClick });
+                                                    if (PVAI)
+                                                    { 
+                                                        p2road[firstClick.y][firstClick.x] = 1;
+                                                        p2road[secondClick.y][secondClick.x] = 1;
+                                                        if (firstClick.y == secondClick.y && firstClick.x != secondClick.x)
+                                                        {
+
+                                                            p2road[firstClick.y][max(firstClick.x, secondClick.x) - 1] = 1;
+                                                        }
+                                                        if (firstClick.y != secondClick.y && firstClick.x == secondClick.x)
+                                                        {
+
+                                                            p2road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
+                                                        }
+                                                        mutare = 1;
+                                                    }
+                                                    if (player == 1 && PVAI == 0)
+                                                    {
+                                                        p1road[firstClick.y][firstClick.x] = 1;
+                                                        p1road[secondClick.y][secondClick.x] = 1;
+                                                        if (firstClick.y == secondClick.y && firstClick.x != secondClick.x)
+                                                        {
+
+                                                            p1road[firstClick.y][max(firstClick.x, secondClick.x) - 1] = 1;
+                                                        }
+                                                        if (firstClick.y != secondClick.y && firstClick.x == secondClick.x)
+                                                        {
+
+                                                            p1road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
+                                                        }
+                                                    }
+                                                    if (player == -1 && PVAI == 0)
+                                                    {
+                                                        p2road[firstClick.y][firstClick.x] = 1;
+                                                        p2road[secondClick.y][secondClick.x] = 1;
+                                                        if (firstClick.y == secondClick.y && firstClick.x != secondClick.x)
+                                                        {
+
+                                                            p2road[firstClick.y][max(firstClick.x, secondClick.x) - 1] = 1;
+                                                        }
+                                                        if (firstClick.y != secondClick.y && firstClick.x == secondClick.x)
+                                                        {
+
+                                                            p2road[max(firstClick.y, secondClick.y) - 1][firstClick.x] = 1;
+                                                        }
+                                                    }
+                                                    firstClick = { -1, -1 };
+                                                    if (PVAI == 0)
+                                                    {
+                                                        win = wincon(player, mapsize);
+                                                        player = -player;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    firstClick = { -1, -1 };
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                        //debugmaps(mapsize);
-                        if (botwin == 0 && PVAI)
+                        if (PVAI)
                         {
-                            win = wincon(player, mapsize);
+                            for (int i = 0; i < mapsize; i++)
+                            {
+                                if (p1road[0][i] == 1)
+                                {
+                                    fillwin(0, i, mapsize, 0, p1road, botwin, 1);
+                                }
+                            }
+                            for (int i = 0; i < mapsize; i++)
+                            {
+                                if (p2road[i][0] == 1)
+                                {
+                                    fillwin(0, i, mapsize, 0, p2road, win, -1);
+                                }
+                            }
+                            if (win == 2)
+                            {
+                                win = 1;
+                            }
+                            if (botwin == 1)
+                            {
+                                win = 2;
+                            }
                         }
                         switch (win)
                         {
@@ -922,7 +1001,14 @@ int main()
                                 setvisualpage(0);
                                 cleardevice();
                                 setcolor(COLOR(B, G, R));
-                                outtextxy(sW / 2 - textwidth("Player 2 wins!") / 2, sH / 2, "Player 2 wins!");
+                                if(botwin == 0)
+                                {
+                                    outtextxy(sW / 2 - textwidth("Player 2 wins!") / 2, sH / 2, "Player 2 wins!");
+                                }
+                                if(botwin == 1)
+                                {
+                                    outtextxy(sW / 2 - textwidth("Bot wins!") / 2, sH / 2, "Bot wins!");
+                                }
                                 clearmouseclick(WM_LBUTTONDOWN);
                                 while (1)
                                 {
