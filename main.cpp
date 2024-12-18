@@ -35,10 +35,6 @@ struct Point {
     int x, y;
 };
 
-struct muchie {
-    int x, y, cost;
-}g[100];
-
 vector<pair<Point, Point>> linii;
 vector<pair<Point, Point>> pozlinii;
 
@@ -49,7 +45,7 @@ int djp[5] = { 2, 0, -2, 0 };
 
 void afisMap(int n, vector<vector <int>> a)
 {
-	cout << n << '\n';
+    cout << n << '\n';
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
@@ -83,11 +79,11 @@ void debugmaps(int n)
 {
     cout << "mapa playerului 1: " << '\n';
     afisMap(n, p1road);
-    cout << "mapa playerului 2: " <<'\n';
+    cout << "mapa playerului 2: " << '\n';
     afisMap(n, p2road);
 }
 
-void fillwin(int istart, int jstart, int n, int v, vector<vector <int>> a, int &win, int player)
+void fillwin(int istart, int jstart, int n, int v, vector<vector <int>> a, int& win, int player)
 {
     queue<pair<int, int>> Q;
     Q.push(make_pair(istart, jstart));
@@ -98,18 +94,18 @@ void fillwin(int istart, int jstart, int n, int v, vector<vector <int>> a, int &
         for (int k = 0; k < 4; k++)
         {
             int iv = i + di[k], jv = j + dj[k];
-            if (iv >= 0 && iv < n && jv >= 0 && jv < n && a[iv][jv]==1 && a[iv][jv] != v)
+            if (iv >= 0 && iv < n && jv >= 0 && jv < n && a[iv][jv] == 1 && a[iv][jv] != v)
             {
                 a[iv][jv] = v;
                 Q.push(make_pair(iv, jv));
-				if (iv == n - 1 && player == 1)
-				{
+                if (iv == n - 1 && player == 1)
+                {
                     win = 1;
-				}
-				if (jv == n - 1 && player == -1)
-				{
-					win = 2;
-				}
+                }
+                if (jv == n - 1 && player == -1)
+                {
+                    win = 2;
+                }
             }
         }
         Q.pop();
@@ -141,13 +137,13 @@ void fillbot(int istart, int jstart, int n, int v)
 
 void genbotar1(int n)
 {
-    for (int i = 1; i < n-1; i++)
+    for (int i = 1; i < n - 1; i++)
     {
-        for (int j = 1; j < n-1; j++)
+        for (int j = 1; j < n - 1; j++)
         {
-            if (j % 2 == 1 && j+i>=n && botar1[i][j]==0)
+            if (j % 2 == 1 && j + i >= n && botar1[i][j] == 0)
             {
-                if (apartine(i+1, j, n, n) && apartine(i-1, j, n, n))
+                if (apartine(i + 1, j, n, n) && apartine(i - 1, j, n, n))
                 {
                     if (botar1[i - 1][j] == 1 && botar1[i + 1][j] == 1)
                     {
@@ -155,11 +151,11 @@ void genbotar1(int n)
                     }
                 }
             }
-            if (j % 2 == 0 && j+i<n && botar1[i][j] == 0)
+            if (j % 2 == 0 && j + i < n && botar1[i][j] == 0)
             {
                 if (apartine(i, j + 1, n, n) && apartine(i, j - 1, n, n))
                 {
-                    if(botar1[i][j-1] == 1 && botar1[i][j+1] == 1)
+                    if (botar1[i][j - 1] == 1 && botar1[i][j + 1] == 1)
                     {
                         botar1[i][j] = 1;
                     }
@@ -226,7 +222,7 @@ void genbotar2(int n)
     {
         for (int j = 1; j < n - 1; j++)
         {
-            botar2[i-1][j-1] = botaux[i][j];
+            botar2[i - 1][j - 1] = botaux[i][j];
         }
     }
     for (int i = 1; i < n - 1; i++)
@@ -337,36 +333,58 @@ pair<Point, Point> botmove(int n, int epsilon, int player)
     }
     if (arbore1 == 2)
     {
-        for (int k = 0; k <= 3; k++)
+        queue<pair<int, int>> Q;
+        Q.push(make_pair(auxi, auxj));
+        int ok = 0;
+        while (!Q.empty())
         {
-            int ik = auxi + di[k];
-            int jk = auxj + dj[k];
-            int ikp = auxi + dip[k];
-            int jkp = auxj + djp[k];
-
-            pair<Point, Point> pereche = { {auxj,auxi}, {auxj + djp[k],auxi + dip[k]} };
-            if (apartine(pereche.first.y, pereche.first.x, n - 1, n - 1) && apartine(pereche.second.y, pereche.second.x, n - 1, n - 1))
+            int i = Q.front().first;
+            int j = Q.front().second;
+            for (int k = 0; k <= 3; k++)
             {
-                if ((abs(pereche.first.x - pereche.second.x) == 2 && pereche.first.y == pereche.second.y) ||
-                    (abs(pereche.first.y - pereche.second.y) == 2 && pereche.first.x == pereche.second.x))
+                int ik = i + di[k];
+                int jk = j + dj[k];
+                int ikp = i + dip[k];
+                int jkp = j + djp[k];
+
+                pair<Point, Point> pereche = { {j,i}, {j + djp[k],i + dip[k]} };
+                if (apartine(pereche.first.y, pereche.first.x, n - 1, n - 1) && apartine(pereche.second.y, pereche.second.x, n - 1, n - 1))
                 {
-                    if (!exista(pereche.first, pereche.second) && map[pereche.first.y][pereche.first.x] == -player && map[pereche.second.y][pereche.second.x] == -player && !intersectie(pereche.first, pereche.second, epsilon, n))
+                    if ((abs(pereche.first.x - pereche.second.x) == 2 && pereche.first.y == pereche.second.y) ||
+                        (abs(pereche.first.y - pereche.second.y) == 2 && pereche.first.x == pereche.second.x))
                     {
-                        if (botar1[ik][jk] == 1 && botar1[ikp][jkp] == 1 && botar2[ik][jk] != 1)
+                        if (!exista(pereche.first, pereche.second) && map[pereche.first.y][pereche.first.x] == -player && map[pereche.second.y][pereche.second.x] == -player && !intersectie(pereche.first, pereche.second, epsilon, n))
                         {
-                            botar1[ik][jk] = 2;
-                            botar1[ikp][jkp] = 2;
-                            botar2[ik][jk] = 2;
-                            botar2[ikp][jkp] = 2;
-                            botar1[auxi][auxj] = 2;
-                            botar2[auxi][auxj] = 2;
-                            fc = { auxj,auxi };
-                            sc = { jkp, ikp };
-                            break;
+                            if (botar2[ik][jk] == 1 && botar2[ikp][jkp] == 1 && botar1[ik][jk] != 1)
+                            {
+                                botar1[ik][jk] = 2;
+                                botar1[ikp][jkp] = 2;
+                                botar2[ik][jk] = 2;
+                                botar2[ikp][jkp] = 2;
+                                botar1[i][j] = 2;
+                                botar2[i][j] = 2;
+                                fc = { j,i };
+                                sc = { jkp, ikp };
+                                ok = 1;
+                                break;
+                            }
                         }
                     }
                 }
             }
+            for (int k = 0; k <= 3; k++)
+            {
+                int iv = i + di[k], jv = j + dj[k];
+                if (iv >= 0 && iv < n && jv >= 0 && jv < n && botar1[iv][jv] >= 1)
+                {
+                    Q.push(make_pair(iv, jv));
+                }
+            }
+            if (ok)
+            {
+                break;
+            }
+            Q.pop();
         }
     }
     for (int i = 0; i < n; i++)
@@ -394,36 +412,58 @@ pair<Point, Point> botmove(int n, int epsilon, int player)
     }
     if (arbore2 == 2)
     {
-        for (int k = 0; k <= 3; k++)
+        queue<pair<int, int>> Q;
+        Q.push(make_pair(auxi, auxj));
+        int ok = 0;
+        while (!Q.empty())
         {
-            int ik = auxi + di[k];
-            int jk = auxj + dj[k];
-            int ikp = auxi + dip[k];
-            int jkp = auxj + djp[k];
-
-            pair<Point, Point> pereche = { {auxj,auxi}, {auxj + djp[k],auxi + dip[k]} };
-            if (apartine(pereche.first.y, pereche.first.x, n - 1, n - 1) && apartine(pereche.second.y, pereche.second.x, n - 1, n - 1))
+            int i = Q.front().first;
+            int j = Q.front().second;
+            for (int k = 0; k <= 3; k++)
             {
-                if ((abs(pereche.first.x - pereche.second.x) == 2 && pereche.first.y == pereche.second.y) ||
-                    (abs(pereche.first.y - pereche.second.y) == 2 && pereche.first.x == pereche.second.x))
+                int ik = i + di[k];
+                int jk = j + dj[k];
+                int ikp = i + dip[k];
+                int jkp = j + djp[k];
+
+                pair<Point, Point> pereche = { {j,i}, {j + djp[k],i + dip[k]} };
+                if (apartine(pereche.first.y, pereche.first.x, n - 1, n - 1) && apartine(pereche.second.y, pereche.second.x, n - 1, n - 1))
                 {
-                    if (!exista(pereche.first, pereche.second) && map[pereche.first.y][pereche.first.x] == -player && map[pereche.second.y][pereche.second.x] == -player && !intersectie(pereche.first, pereche.second, epsilon, n))
+                    if ((abs(pereche.first.x - pereche.second.x) == 2 && pereche.first.y == pereche.second.y) ||
+                        (abs(pereche.first.y - pereche.second.y) == 2 && pereche.first.x == pereche.second.x))
                     {
-                        if (botar1[ik][jk] == 1 && botar1[ikp][jkp] == 1 && botar2[ik][jk] != 1)
+                        if (!exista(pereche.first, pereche.second) && map[pereche.first.y][pereche.first.x] == -player && map[pereche.second.y][pereche.second.x] == -player && !intersectie(pereche.first, pereche.second, epsilon, n))
                         {
-                            botar1[ik][jk] = 2;
-                            botar1[ikp][jkp] = 2;
-                            botar2[ik][jk] = 2;
-                            botar2[ikp][jkp] = 2;
-                            botar1[auxi][auxj] = 2;
-                            botar2[auxi][auxj] = 2;
-                            fc = { auxj,auxi };
-                            sc = { jkp, ikp };
-                            break;
+                            if (botar1[ik][jk] == 1 && botar1[ikp][jkp] == 1 && botar2[ik][jk] != 1)
+                            {
+                                botar1[ik][jk] = 2;
+                                botar1[ikp][jkp] = 2;
+                                botar2[ik][jk] = 2;
+                                botar2[ikp][jkp] = 2;
+                                botar1[i][j] = 2;
+                                botar2[i][j] = 2;
+                                fc = { j,i };
+                                sc = { jkp, ikp };
+                                ok = 1;
+                                break;
+                            }
                         }
                     }
                 }
             }
+            for (int k = 0; k <= 3; k++)
+            {
+                int iv = i + di[k], jv = j + dj[k];
+                if (iv >= 0 && iv < n && jv >= 0 && jv < n && botar2[iv][jv] >= 1)
+                {
+                    Q.push(make_pair(iv, jv));
+                }
+            }
+            if (ok)
+            {
+                break;
+            }
+            Q.pop();
         }
     }
     for (int i = 0; i < n; i++)
@@ -462,7 +502,7 @@ int GUI(char text[], int diffx, int diffy)
         settextstyle(font, direction, hover_font_size);
         if (ismouseclick(WM_LBUTTONDOWN))
         {
-            ok=1;
+            ok = 1;
             clearmouseclick(WM_LBUTTONDOWN);
         }
     }
@@ -491,22 +531,22 @@ void Fullscreen()
     {
         switch (fullscreen)
         {
-            case 1:
-                closegraph();
-                initwindow(sW, sH, "Bridg-It");
-                fullscreen = 0;
-                settextstyle(font, direction, font_size);
-                setbkcolor(COLOR(16, 16, 16));
-                delay(100);
-                break;
-            case 0:
-                closegraph();
-                initwindow(sW, sH, "", -3, -3);
-                fullscreen = 1;
-                settextstyle(font, direction, font_size);
-                setbkcolor(COLOR(16, 16, 16));
-                delay(100);
-                break;
+        case 1:
+            closegraph();
+            initwindow(sW, sH, "Bridg-It");
+            fullscreen = 0;
+            settextstyle(font, direction, font_size);
+            setbkcolor(COLOR(16, 16, 16));
+            delay(100);
+            break;
+        case 0:
+            closegraph();
+            initwindow(sW, sH, "", -3, -3);
+            fullscreen = 1;
+            settextstyle(font, direction, font_size);
+            setbkcolor(COLOR(16, 16, 16));
+            delay(100);
+            break;
         }
     }
 }
@@ -551,11 +591,11 @@ void drawMap(int mapsize, int epsilon, int r, int g, int b)
 int wincon(int player, int mapsize)
 {
     int win = 0;
-    if(player == 1)
+    if (player == 1)
     {
         for (int i = 0; i < mapsize; i++)
         {
-            if (p1road[0][i] == 1) 
+            if (p1road[0][i] == 1)
             {
                 fillwin(0, i, mapsize, 0, p1road, win, player);
             }
@@ -574,7 +614,7 @@ int wincon(int player, int mapsize)
     return win;
 }
 
-int eval(int player, int mapsize) 
+int eval(int player, int mapsize)
 {
     int win = wincon(player, mapsize);
     return 0;
@@ -582,7 +622,7 @@ int eval(int player, int mapsize)
 
 int main()
 {
-    int R=0, G=0, B=0;
+    int R = 0, G = 0, B = 0;
     //65, 65, 202
     srand(time(NULL));
     initwindow(sW, sH, "", -3, -3);
@@ -611,8 +651,8 @@ int main()
         PC = GUI("Player Color", -400, 200);
         BT = GUI("Bot Difficulty", 400, 200);
 
-        settextstyle(5, 0, sH/100);
-        outtextxy(sW / 2 - textwidth("Bridg-it")/2, sH / 6, "Bridg-it");
+        settextstyle(5, 0, sH / 100);
+        outtextxy(sW / 2 - textwidth("Bridg-it") / 2, sH / 6, "Bridg-it");
         settextstyle(font, direction, font_size);
 
         int numb[5];
@@ -665,8 +705,8 @@ int main()
 
             while (1)
             {
-                char txt[100] = { 'B', 'o', 't', ' ', 'D', 'i', 'f', 'f', 'i', 'c', 'u', 'l', 't', 'y', ':', ' '};
-                outtextxy(sW / 2 - textwidth(txt) , sH / 2, txt);
+                char txt[100] = { 'B', 'o', 't', ' ', 'D', 'i', 'f', 'f', 'i', 'c', 'u', 'l', 't', 'y', ':', ' ' };
+                outtextxy(sW / 2 - textwidth(txt), sH / 2, txt);
                 do
                 {
                     int ok = 0;
@@ -744,7 +784,7 @@ int main()
                             mapsize = charNr_to_int(ch);
                             if (mapsize % 2 == 0)
                             {
-                                outtextxy(sW / 2 - textwidth("Please select an odd number")/2, sH/ 2 + textheight("Please select an odd number")*2, "Please select an odd number");
+                                outtextxy(sW / 2 - textwidth("Please select an odd number") / 2, sH / 2 + textheight("Please select an odd number") * 2, "Please select an odd number");
                             }
                             else
                             {
@@ -772,13 +812,13 @@ int main()
                 botar1.clear();
                 botar2.clear();
 
-                botar1.resize(mapsize+1);
+                botar1.resize(mapsize + 1);
                 for (int i = 0; i < mapsize; i++)
                 {
                     botar1[i].resize(mapsize);
                 }
 
-                botar2.resize(mapsize+1);
+                botar2.resize(mapsize + 1);
                 for (int i = 0; i < mapsize; i++)
                 {
                     botar2[i].resize(mapsize);
@@ -807,8 +847,8 @@ int main()
 
                 linii.clear();
                 pozlinii.clear();
-				p1road.clear();
-				p2road.clear();
+                p1road.clear();
+                p2road.clear();
 
                 p1road.resize(mapsize);
                 for (int i = 0; i < mapsize; i++)
@@ -838,7 +878,7 @@ int main()
 
                     if (PVAI == 1 && BotDifficulty == 2 && mutare == 1)
                     {
-                        pair<Point,Point> pereche = botmove(mapsize,epsilon,player);
+                        pair<Point, Point> pereche = botmove(mapsize, epsilon, player);
                         cout << pereche.first.x << " " << pereche.first.y << " " << pereche.second.x << " " << pereche.second.y << '\n';
                         pozlinii.push_back(pereche);
                         linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + pereche.first.x * epsilon, sH / 2 - mapsize / 2 * epsilon + pereche.first.y * epsilon},
@@ -899,12 +939,12 @@ int main()
                         {
                             setcolor(COLOR(B, G, R));
                             playercolor = -playercolor;
-                            
+
                         }
-						else if (playercolor == -1)
+                        else if (playercolor == -1)
                         {
                             setcolor(COLOR(R, G, B));
-							playercolor = -playercolor;
+                            playercolor = -playercolor;
                         }
                         line(linePair.first.x, linePair.first.y, linePair.second.x, linePair.second.y);
                     }
@@ -957,7 +997,7 @@ int main()
                                                                       {sW / 2 - mapsize / 2 * epsilon + secondClick.x * epsilon, sH / 2 - mapsize / 2 * epsilon + secondClick.y * epsilon} });
                                                     pozlinii.push_back({ firstClick, secondClick });
                                                     if (PVAI)
-                                                    { 
+                                                    {
                                                         p2road[firstClick.y][firstClick.x] = 1;
                                                         p2road[secondClick.y][secondClick.x] = 1;
 
@@ -1047,47 +1087,47 @@ int main()
                             }
                             if (win == 2)
                             {
-                                win = 1;
+                                win = 2;
                             }
                             if (botwin == 1)
                             {
-                                win = 2;
+                                win = 1;
                             }
                         }
                         switch (win)
                         {
-                            case 1:
-                                setactivepage(0);
-                                setvisualpage(0);
-                                cleardevice();
-                                setcolor(COLOR(R, G, B));
-                                outtextxy(sW / 2 - textwidth("Player 1 wins!") / 2, sH / 2, "Player 1 wins!");
-                                clearmouseclick(WM_LBUTTONDOWN);
-                                while (1)
+                        case 1:
+                            setactivepage(0);
+                            setvisualpage(0);
+                            cleardevice();
+                            setcolor(COLOR(R, G, B));
+                            outtextxy(sW / 2 - textwidth("Player 1 wins!") / 2, sH / 2, "Player 1 wins!");
+                            clearmouseclick(WM_LBUTTONDOWN);
+                            while (1)
+                            {
+                                if (GetKeyState(VK_ESCAPE) & 0x8000)
                                 {
-                                    if (GetKeyState(VK_ESCAPE) & 0x8000)
-                                    {
-                                        setcolor(COLOR(R, G, B));
-                                        break;
-                                    }
+                                    setcolor(COLOR(R, G, B));
+                                    break;
                                 }
-                                break;
-                            case 2:
-                                setactivepage(0);
-                                setvisualpage(0);
-                                cleardevice();
-                                setcolor(COLOR(B, G, R));
-                                outtextxy(sW / 2 - textwidth("Player 2 wins!") / 2, sH / 2, "Player 2 wins!");
-                                clearmouseclick(WM_LBUTTONDOWN);
-                                while (1)
+                            }
+                            break;
+                        case 2:
+                            setactivepage(0);
+                            setvisualpage(0);
+                            cleardevice();
+                            setcolor(COLOR(B, G, R));
+                            outtextxy(sW / 2 - textwidth("Player 2 wins!") / 2, sH / 2, "Player 2 wins!");
+                            clearmouseclick(WM_LBUTTONDOWN);
+                            while (1)
+                            {
+                                if (GetKeyState(VK_ESCAPE) & 0x8000)
                                 {
-                                    if (GetKeyState(VK_ESCAPE) & 0x8000)
-                                    {
-                                        setcolor(COLOR(R, G, B));
-                                        break;
-                                    }
+                                    setcolor(COLOR(R, G, B));
+                                    break;
                                 }
-                                break;
+                            }
+                            break;
                         }
                         linepage = 1 - linepage;
                     }
