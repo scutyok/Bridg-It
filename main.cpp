@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include <vector>
+#include <fstream>
 #include <iostream>
 #include <windows.h>
 #include <string>
@@ -11,6 +12,9 @@
 #include <time.h>
 
 using namespace std;
+
+ofstream f1("arbore1.txt");
+ofstream f2("arbore2.txt");
 
 vector<vector<int>> map;
 vector<vector<int>> p1road;
@@ -484,21 +488,18 @@ pair<Point, Point> botmove(int n, int epsilon, int player, int nmuchie)
     {
         for (int j = 0; j < n; j++)
         {
-            cout << setw(5) << botar1[i][j];
+            f1 << setw(5) << botar1[i][j];
         }
-        cout << '\n';
+        f1 << '\n';
     }
-    cout << '\n';
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
         {
-            cout << setw(5) << botar2[i][j];
+            f2 << setw(5) << botar2[i][j];
         }
-        cout << '\n';
+        f2 << '\n';
     }
-    cout << '\n';
-    cout << arbore1 << " " << arbore2 << '\n';
     return { fc, sc };
 }
 
@@ -713,7 +714,7 @@ int main()
         PVAI = GUI("Player V.S. AI", 400, 0);
         PC = GUI("Player Color", -400, 200);
         BT = GUI("Bot Difficulty", 400, 200);
-        BK(20,1,sH/10);
+        BK(20, 1, sH / 10);
 
         settextstyle(5, 0, sH / 100);
         outtextxy(sW / 2 - textwidth("Bridg-it") / 2, sH / 6, "Bridg-it");

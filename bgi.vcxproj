@@ -82,6 +82,10 @@
     <ClInclude Include="winbgim.h" />
     <ClInclude Include="winbgitypes.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="arbore1.txt" />
+    <Text Include="arbore2.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
