@@ -185,9 +185,9 @@ void genbotar1(int n)
 
 void genbotar2(int n)
 {
-    for (int i = 1; i < n - 1; i++)
+    for (int i = 1; i < n-1; i++)
     {
-        for (int j = 1; j < n - 1; j++)
+        for (int j = 1; j < n-1; j++)
         {
             if (j % 2 == 1 && j + i >= n && botar2[i][j] == 0)
             {
@@ -211,26 +211,26 @@ void genbotar2(int n)
             }
         }
     }
-    for (int i = 1; i < n - 1; i++)
+    for (int i = 1; i < n-1; i++)
     {
-        for (int j = 1; j < n - 1; j++)
+        for (int j = 1; j < n-1; j++)
         {
             botaux[i][j] = botar2[j][i];
         }
     }
-    for (int i = 1; i < n - 1; i++)
+    for (int i = 1; i < n-1; i++)
     {
-        for (int j = 1; j < n - 1; j++)
+        for (int j = 1; j < n-1; j++)
         {
             botar2[i - 1][j - 1] = botaux[i][j];
         }
     }
-    for (int i = 1; i < n - 1; i++)
+    for (int i = 1; i < n-1; i++)
     {
         botar2[0][i] = 2;
         botar2[n - 1][i] = 2;
     }
-    for (int i = 1; i < n - 1; i++)
+    for (int i = 1; i < n-1; i++)
     {
         if (i % 2 != 0)
         {
@@ -303,7 +303,7 @@ int intersectie(Point p1, Point p2, int epsilon, int mapsize)
     return 0;
 }
 
-pair<Point, Point> botmove(int n, int epsilon, int player)
+pair<Point, Point> botmove(int n, int epsilon, int player, int nmuchie)
 {
     Point fc;
     Point sc;
@@ -322,7 +322,12 @@ pair<Point, Point> botmove(int n, int epsilon, int player)
             if (botaux[i][j] >= 1)
             {
                 arbore1++;
-                if (arbore1 == 2)
+                if (arbore1 == 1 && nmuchie == 0)
+                {
+                    auxi = i;
+                    auxj = j;
+                }
+                if (arbore1 == 2 && nmuchie == 1)
                 {
                     auxi = i;
                     auxj = j;
@@ -401,7 +406,12 @@ pair<Point, Point> botmove(int n, int epsilon, int player)
             if (botaux[i][j] >= 1)
             {
                 arbore2++;
-                if (arbore2 == 2)
+                if (arbore2 == 1 && nmuchie == 0)
+                {
+                    auxi = i;
+                    auxj = j;
+                }
+                if (arbore2 == 2 && nmuchie == 1)
                 {
                     auxi = i;
                     auxj = j;
@@ -867,7 +877,7 @@ int main()
                     player = -player;
                     mutare = 1;
                 }
-
+                pair<Point, Point> oldpereche;
                 while (1)
                 {
                     int epsilon = sH / 10;
@@ -876,24 +886,84 @@ int main()
 
                     int playercolor = -1;
 
-                    if (PVAI == 1 && BotDifficulty == 2 && mutare == 1)
+                    if (PVAI == 1 && BotDifficulty == 2 && mutare == 1) 
                     {
-                        pair<Point, Point> pereche = botmove(mapsize, epsilon, player);
+                        pair<Point, Point> pereche = botmove(mapsize, epsilon, player, 1);
+                        if (!apartine(pereche.first.x, pereche.first.y, mapsize,mapsize) && !apartine(pereche.second.x, pereche.second.y, mapsize, mapsize))
+                        {
+                            pair<Point, Point> pereche = botmove(mapsize, epsilon, player, 0);
+                        }
                         cout << pereche.first.x << " " << pereche.first.y << " " << pereche.second.x << " " << pereche.second.y << '\n';
-                        pozlinii.push_back(pereche);
-                        linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + pereche.first.x * epsilon, sH / 2 - mapsize / 2 * epsilon + pereche.first.y * epsilon},
-                                          {sW / 2 - mapsize / 2 * epsilon + pereche.second.x * epsilon, sH / 2 - mapsize / 2 * epsilon + pereche.second.y * epsilon} });
-                        p1road[pereche.first.y][pereche.first.x] = 1;
-                        p1road[pereche.second.y][pereche.second.x] = 1;
-                        if (pereche.first.y == pereche.second.y && pereche.first.x != pereche.second.x)
+                        if (!apartine(pereche.first.x, pereche.first.y, mapsize, mapsize) && !apartine(pereche.second.x, pereche.second.y, mapsize, mapsize))
                         {
-                            p1road[pereche.first.y][max(pereche.first.x, pereche.second.x) - 1] = 1;
+                            while (mutare == 1)
+                            {
+                                int deciziei = oldpereche.second.y;
+                                int deciziej = oldpereche.second.x;
+                                for (int directie = 0; directie <= 3; directie++)
+                                {
+                                    if (apartine(deciziei, deciziej, mapsize - 1, mapsize - 1) && apartine(deciziei + dip[directie], deciziej + djp[directie], mapsize - 1, mapsize - 1))
+                                    {
+                                        if ((abs(deciziej - deciziej + djp[directie]) == 2 && deciziei == deciziei + dip[directie]) ||
+                                            (abs(deciziei - deciziei + dip[directie]) == 2 && deciziej == deciziej + djp[directie]))
+                                        {
+                                            if (!exista({ deciziei,deciziej }, { deciziei + dip[directie], deciziej + djp[directie] }) && map[deciziei][deciziej] == -player && map[deciziei + dip[directie]][deciziej + djp[directie]] == -player && !intersectie({ deciziej,deciziei }, { deciziej + djp[directie], deciziei + dip[directie] }, epsilon, mapsize))
+                                            {
+
+                                                cout << 1;
+                                                pozlinii.push_back({ { deciziei,deciziej },{ deciziei + dip[directie], deciziej + djp[directie] } });
+                                                linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + deciziej * epsilon, sH / 2 - mapsize / 2 * epsilon + deciziei * epsilon},
+                                                                  {sW / 2 - mapsize / 2 * epsilon + (deciziej + djp[directie]) * epsilon, sH / 2 - mapsize / 2 * epsilon + (deciziei + dip[directie]) * epsilon} });
+                                                mutare = 0;
+                                                p1road[deciziei][deciziej] = 1;
+                                                p1road[deciziei + dip[directie]][deciziej + djp[directie]] = 1;
+                                                botar1[deciziei][deciziej] = 2;
+                                                botar1[deciziei + dip[directie]][deciziej + djp[directie]] = 2;
+                                                botar2[deciziei][deciziej] = 2;
+                                                botar2[deciziei + dip[directie]][deciziej + djp[directie]] = 2;
+                                                if (deciziei == deciziei + dip[directie] && deciziej != deciziej + djp[directie])
+                                                {
+
+                                                    p1road[deciziei][max(deciziej, deciziej + djp[directie]) - 1] = 1;
+                                                    botar1[deciziei][max(deciziej, deciziej + djp[directie]) - 1] = 2;
+                                                    botar2[deciziei][max(deciziej, deciziej + djp[directie]) - 1] = 2;
+                                                }
+                                                if (deciziei != deciziei + dip[directie] && deciziej == deciziej + djp[directie])
+                                                {
+
+                                                    p1road[max(deciziei, deciziei + dip[directie]) - 1][deciziej] = 1;
+                                                    botar1[max(deciziei, deciziei + dip[directie]) - 1][deciziej] = 2;
+                                                    botar2[max(deciziei, deciziei + dip[directie]) - 1][deciziej] = 2;
+                                                }
+                                                oldpereche = pereche;
+                                            }
+                                        }
+                                    }
+                                    if (mutare == 0)
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
                         }
-                        if (pereche.first.y != pereche.second.y && pereche.first.x == pereche.second.x)
+                        else
                         {
-                            p1road[max(pereche.first.y, pereche.second.y) - 1][pereche.first.x] = 1;
+                            pozlinii.push_back(pereche);
+                            linii.push_back({ {sW / 2 - mapsize / 2 * epsilon + pereche.first.x * epsilon, sH / 2 - mapsize / 2 * epsilon + pereche.first.y * epsilon},
+                                              {sW / 2 - mapsize / 2 * epsilon + pereche.second.x * epsilon, sH / 2 - mapsize / 2 * epsilon + pereche.second.y * epsilon} });
+                            p1road[pereche.first.y][pereche.first.x] = 1;
+                            p1road[pereche.second.y][pereche.second.x] = 1;
+                            if (pereche.first.y == pereche.second.y && pereche.first.x != pereche.second.x)
+                            {
+                                p1road[pereche.first.y][max(pereche.first.x, pereche.second.x) - 1] = 1;
+                            }
+                            if (pereche.first.y != pereche.second.y && pereche.first.x == pereche.second.x)
+                            {
+                                p1road[max(pereche.first.y, pereche.second.y) - 1][pereche.first.x] = 1;
+                            }
+                            oldpereche = pereche;
+                            mutare = 0;
                         }
-                        mutare = 0;
                     }
                     if (PVAI == 1 && BotDifficulty == 1 && mutare == 1)
                     {
