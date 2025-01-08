@@ -30,6 +30,7 @@ int sW = GetSystemMetrics(SM_CXSCREEN);
 int clearbuffer = 0;
 int BotDifficulty = 1;
 int fullscreen = 1;
+int mutare = -1;
 
 struct Point {
     int x, y;
@@ -37,11 +38,14 @@ struct Point {
 
 vector<pair<Point, Point>> linii;
 vector<pair<Point, Point>> pozlinii;
+vector<pair<Point, Point>> lbg;
 
 int di[5] = { 0, 1, 0, -1 };
 int dj[5] = { 1, 0, -1, 0 };
 int dip[5] = { 0, 2, 0, -2 };
 int djp[5] = { 2, 0, -2, 0 };
+
+int R = 0, G = 0, B = 0;
 
 void afisMap(int n, vector<vector <int>> a)
 {
@@ -594,6 +598,7 @@ void drawMap(int mapsize, int epsilon, int r, int g, int b)
                 setfillstyle(SOLID_FILL, COLOR(b, g, r));
                 floodfill(circleX, circleY, BLUE);
             }
+
         }
     }
 }
@@ -630,9 +635,57 @@ int eval(int player, int mapsize)
     return 0;
 }
 
+void BK(int mapsize, int player, int epsilon)
+{
+    for (int i = 0; i < 100; i++)
+    {
+        if (mutare == -1)
+        {
+            mutare = 1;
+        }
+        while (mutare == 1)
+        {
+            int deciziei = rand() % mapsize;
+            int deciziej = rand() % mapsize;
+            int directie = rand() % 4;
+            if (apartine(deciziei, deciziej, mapsize - 1, mapsize - 1) && apartine(deciziei + dip[directie], deciziej + djp[directie], mapsize - 1, mapsize - 1))
+            {
+                if ((abs(deciziej - deciziej + djp[directie]) == 2 && deciziei == deciziei + dip[directie]) ||
+                    (abs(deciziei - deciziei + dip[directie]) == 2 && deciziej == deciziej + djp[directie]))
+                {
+                    if (!exista({ deciziei,deciziej }, { deciziei + dip[directie], deciziej + djp[directie] }) )
+                    {
+                        lbg.push_back({ {sW / 2 - mapsize / 2 * epsilon + deciziej * epsilon, sH / 2 - mapsize / 2 * epsilon + deciziei * epsilon},
+                                        {sW / 2 - mapsize / 2 * epsilon + (deciziej + djp[directie]) * epsilon, sH / 2 - mapsize / 2 * epsilon + (deciziei + dip[directie]) * epsilon} });
+                        mutare = -1;
+                    }
+                }
+            }
+        }
+    }
+    mutare = 0;
+    for (int i = 0; i < lbg.size(); i++)
+    {
+        const auto& linePair = lbg[i];
+        if (i%2!=0)
+        {
+            setcolor(COLOR(B, G, R));
+            circle(linePair.first.x, linePair.first.y,10);
+            circle(linePair.second.x, linePair.second.y,10);
+        }
+        else
+        {
+            setcolor(COLOR(R, G, B));
+            circle(linePair.first.x, linePair.first.y,10);
+            circle(linePair.second.x, linePair.second.y,10);
+        }
+        line(linePair.first.x, linePair.first.y, linePair.second.x, linePair.second.y);
+    }
+    setcolor(WHITE);
+}
+
 int main()
 {
-    int R = 0, G = 0, B = 0;
     //65, 65, 202
     srand(time(NULL));
     initwindow(sW, sH, "", -3, -3);
@@ -660,6 +713,7 @@ int main()
         PVAI = GUI("Player V.S. AI", 400, 0);
         PC = GUI("Player Color", -400, 200);
         BT = GUI("Bot Difficulty", 400, 200);
+        BK(20,1,sH/10);
 
         settextstyle(5, 0, sH / 100);
         outtextxy(sW / 2 - textwidth("Bridg-it") / 2, sH / 6, "Bridg-it");
